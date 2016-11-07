@@ -43,6 +43,8 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 	lines.add(new Line(prefix, text));
 	updateEditPos();
 	environment.onAreaNewContent(this);
+	if (getHotPointY() + 1 == lines.size())
+	    setHotPointY(getHotPointY() + 1);
     }
 
     @Override public int getLineCount()
@@ -72,7 +74,7 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 		switch(event.getSpecial())
 		{
 		case ENTER:
-		    return onEnter();
+		    return onEnterInEdit();
 		}
 	if (edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onKeyboardEvent(event))
 	    return true;
@@ -106,15 +108,15 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 	return enteringText;
     }
 
-    protected boolean onEnter()
+    protected boolean onEnterInEdit()
     {
 	if (enteringText.isEmpty())
 	    return false;
-	if (listener == null)
-	    return false;
-	listener.onNewEnteredMessage(enteringText);
+	if (listener != null)
+	    listener.onNewEnteredMessage(enteringText);
 	enteringText = "";
 	environment.onAreaNewContent(this);
+	setHotPoint(enteringPrefix.length(), lines.size());
 	return true;
     }
 
