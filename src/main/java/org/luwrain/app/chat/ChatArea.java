@@ -10,6 +10,7 @@ import org.luwrain.controls.*;
 
 class ChatArea extends NavigationArea implements  EmbeddedEditLines
 {
+    protected Listener listener = null;
     protected final EmbeddedSingleLineEdit edit;
     protected final Vector<Line> lines = new Vector<Line>();
 
@@ -22,24 +23,57 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 	edit = new EmbeddedSingleLineEdit(environment, this, this, 0, 0);
     }
 
+    void setListener(Listener listener)
+    {
+	this.listener = listener;
+    }
+
+    void setEnteringPrefix(String prefix)
+    {
+	NullCheck.notNull(prefix, "prefix");
+	this.enteringPrefix = prefix;
+	updateEditPos();
+	environment.onAreaNewContent(this);
+    }
+
+    void addLine(String prefix, String text)
+    {
+	NullCheck.notNull(prefix, "prefix");
+	NullCheck.notNull(text, "text");
+	lines.add(new Line(prefix, text));
+	updateEditPos();
+	environment.onAreaNewContent(this);
+    }
+
     @Override public int getLineCount()
     {
-	return 1;
+	return lines.size() + 1;
     }
 
     @Override public String getLine(int index)
     {
+	if (index < lines.size())
+	    return lines.get(index).toString();
+	if (index == lines.size())
+	    return enteringPrefix + enteringText;
 	return "";
     }
 
     @Override public String getAreaName()
     {
-	return "";
+	return "chat";
     }
 
     @Override public boolean onKeyboardEvent(KeyboardEvent event)
     {
 	NullCheck.notNull(event, "event");
+	if (edit.isPosCovered(getHotPointX(), getHotPointY()))
+	    if (event.isSpecial() && !event.isModified())
+		switch(event.getSpecial())
+		{
+		case ENTER:
+		    return onEnter();
+		}
 	if (edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onKeyboardEvent(event))
 	    return true;
 	return super.onKeyboardEvent(event);
@@ -71,6 +105,28 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     {
 	return enteringText;
     }
+
+    protected boolean onEnter()
+    {
+	if (enteringText.isEmpty())
+	    return false;
+	if (listener == null)
+	    return false;
+	listener.onNewEnteredMessage(enteringText);
+	enteringText = "";
+	environment.onAreaNewContent(this);
+	return true;
+    }
+
+	protected void updateEditPos()
+    {
+	edit.setNewPos(enteringPrefix.length(), lines.size());
+    }
+
+interface Listener 
+{
+    void onNewEnteredMessage(String text);
+}
 
     static protected class Line
     {

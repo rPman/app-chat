@@ -13,6 +13,7 @@ class ChatApp implements Application, MonoApp
     private final Base base = new Base();
     private Strings strings;
     private TreeArea sectionsArea;
+    private ChatArea chatArea;
 
     @Override public boolean onLaunch(Luwrain luwrain)
     {
@@ -45,13 +46,16 @@ class ChatApp implements Application, MonoApp
 			switch (event.getSpecial())
 			{
 			case TAB:
-			    return gotoOptions();
+			    return gotoSecondArea();
 			}
 		    return super.onKeyboardEvent(event);
 		}
 
 		@Override public boolean onEnvironmentEvent(EnvironmentEvent event)
 		{
+		    NullCheck.notNull(event, "event");
+		    if (event.getType() == EnvironmentEvent.Type.REGULAR)
+			return super.onEnvironmentEvent(event);
 		    switch (event.getCode())
 		    {
 		    case ACTION:
@@ -69,7 +73,43 @@ class ChatApp implements Application, MonoApp
 		    return getTreeActions();
 		}
 	    };
-    }
+    
+
+    chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
+
+	    @Override public boolean onKeyboardEvent(KeyboardEvent event)
+	    {
+		NullCheck.notNull(event, "event");
+		if (event.isSpecial() && !event.isModified())
+		    switch(event.getSpecial())
+		{
+		case TAB:
+		    return gotoSectionsArea();
+		}
+		return super.onKeyboardEvent(event);
+	    }
+
+	    @Override public boolean onEnvironmentEvent(EnvironmentEvent event)
+	    {
+		NullCheck.notNull(event, "event");
+		if (event.getType() == EnvironmentEvent.Type.REGULAR)
+		    return super.onEnvironmentEvent(event);
+		switch(event.getCode())
+		{
+		case CLOSE:
+		    closeApp();
+		    return true;
+		default:
+		    return super.onEnvironmentEvent(event);
+		}
+	    }
+	};
+
+		chatArea.setEnteringPrefix("proba>");
+		chatArea.setListener((text)->chatArea.addLine("entered>", text));
+
+	}
+
 
     private void refreshSectionsTree()
     {
@@ -90,19 +130,21 @@ class ChatApp implements Application, MonoApp
 	return false;
     }
 
-    private void gotoSections()
+    private boolean gotoSectionsArea()
     {
 	luwrain.setActiveArea(sectionsArea);
+	return true;
     }
 
-    private boolean gotoOptions()
+    private boolean gotoSecondArea()
     {
+	luwrain.setActiveArea(chatArea);
 	return true;
     }
 
     @Override public AreaLayout getAreasToShow()
     {
-	return new AreaLayout(sectionsArea);
+	return new AreaLayout(AreaLayout.LEFT_RIGHT, sectionsArea, chatArea);
     }
 
     @Override public String getAppName()
