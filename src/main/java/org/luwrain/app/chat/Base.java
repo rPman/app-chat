@@ -8,6 +8,7 @@ import org.luwrain.core.events.EnvironmentEvent;
 import org.luwrain.popups.EditListPopup;
 import org.luwrain.popups.EditListPopupUtils;
 import org.luwrain.popups.Popups;
+import org.luwrain.app.chat.im.ChatMenu;
 import org.luwrain.controls.*;
 
 class Base
@@ -22,7 +23,7 @@ class Base
     private TreeArea sectionsArea;
     private ChatArea chatArea;
     
-    Vector<ChatMenu> res;
+    Vector<ChatMenu> accounts;
     
     public ChatArea getChatArea()
 	{
@@ -61,6 +62,7 @@ class Base
  			case "Telegram": return addAccountTelegram();
  			case "Jabber": return addAccountJabber();
  		}
+ 		sectionsArea.refresh();
  		return true;
  	}
 
@@ -127,30 +129,33 @@ class Base
 
     Object[] getAccounts()
     {
-    	res=new Vector<ChatMenu>();
-    	String[] dirs=luwrain.getRegistry().getDirectories(REGISTRY_PATH);
-    	if (dirs==null)
-    		return new String[]{};
-    	int id=0;
-    	for (String str : dirs)
+    	if (accounts==null)
     	{
-    		String accauntpath=Registry.join(REGISTRY_PATH,str);
-    		ConfigAccessor.Type type=RegistryProxy.create(luwrain.getRegistry(), accauntpath, ConfigAccessor.Type.class);
-    		switch(type.getType(""))
-    		{
-    			case "Telegram":
+	    	accounts=new Vector<ChatMenu>();
+	    	String[] dirs=luwrain.getRegistry().getDirectories(REGISTRY_PATH);
+	    	if (dirs==null)
+	    		return new String[]{};
+	    	int id=0;
+	    	for (String str : dirs)
+	    	{
+	    		String accauntpath=Registry.join(REGISTRY_PATH,str);
+	    		ConfigAccessor.Type type=RegistryProxy.create(luwrain.getRegistry(), accauntpath, ConfigAccessor.Type.class);
+	    		switch(type.getType(""))
+	    		{
+	    			case "Telegram":
     				{
     					ConfigAccessor.Telegram config=RegistryProxy.create(luwrain.getRegistry(), accauntpath, ConfigAccessor.Telegram.class);
     					TelegramAccauntImpl telegram=new TelegramAccauntImpl(luwrain,config);
-    					res.add(telegram);
+    					accounts.add(telegram);
     					break;
     				}
-    			//case "Jabber": res.put("Jabber"+str,id++);break;
-    			default:
-    				break;
-    		}
+	    			//case "Jabber": res.put("Jabber"+str,id++);break;
+	    			default:
+	    				break;
+	    		}
+	    	}
     	}
-	return res.toArray(new TelegramAccauntImpl[res.size()]);
+	return accounts.toArray(new TelegramAccauntImpl[accounts.size()]);
     }
 
     public TreeArea getSectionsArea()

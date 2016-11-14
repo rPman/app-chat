@@ -8,12 +8,14 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.codec.binary.Hex;
 import org.luwrain.app.chat.im.Messagener;
+import org.luwrain.app.chat.im.Contact;
 import org.luwrain.app.chat.im.Events;
 import org.telegram.api.TLConfig;
 import org.telegram.api.auth.TLAuthorization;
 import org.telegram.api.auth.TLCheckedPhone;
 import org.telegram.api.auth.TLExportedAuthorization;
 import org.telegram.api.auth.TLSentCode;
+import org.telegram.api.contact.TLContact;
 import org.telegram.api.contacts.TLContacts;
 import org.telegram.api.engine.ApiCallback;
 import org.telegram.api.engine.AppInfo;
@@ -28,6 +30,8 @@ import org.telegram.api.functions.auth.TLRequestAuthSignUp;
 import org.telegram.api.functions.contacts.TLRequestContactsGetContacts;
 import org.telegram.api.functions.help.TLRequestHelpGetConfig;
 import org.telegram.api.updates.TLAbsUpdates;
+import org.telegram.api.user.TLAbsUser;
+import org.telegram.api.user.TLUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLBytes;
 
@@ -360,7 +364,13 @@ public class TelegramImpl implements Messagener {
 			rescnts = (TLContacts) getApi().doRpcCallNonAuth(cntcs);
 			System.out.println("contacts users " + rescnts.getUsers().size());
 			System.out.println("contacts result " + rescnts.getContacts().size());
-			getEvents().onSearchResult();
+			for(TLAbsUser o:rescnts.getUsers())
+			{
+				TLUser u=(TLUser)o;
+				TelegramContactImpl contact=new TelegramContactImpl(){};
+				contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
+				getEvents().onNewContact(contact);	
+			}
 //			TLRequestMessagesSendMessage message=new TLRequestMessagesSendMessage();
 //			message.setMessage("hello");
 //			System.out.println(rescnts.getUsers().get(0).getId());

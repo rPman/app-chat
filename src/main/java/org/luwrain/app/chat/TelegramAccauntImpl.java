@@ -1,5 +1,9 @@
 package org.luwrain.app.chat;
 
+import java.util.Vector;
+
+import org.luwrain.app.chat.im.ChatMenu;
+import org.luwrain.app.chat.im.Contact;
 import org.luwrain.app.chat.im.Events;
 import org.luwrain.app.chat.im.Messagener;
 import org.luwrain.app.chat.im.telegram.Config;
@@ -13,12 +17,14 @@ public class TelegramAccauntImpl implements ChatMenu
 	private Messagener messagener=null;
 	private Luwrain luwrain;
 	boolean status=false;
+	Vector<Contact> contacts;
 	
 	private static Object autorun=autoRun(); 
 	public TelegramAccauntImpl(Luwrain luwrain,ConfigAccessor.Telegram config)
 	{
 		this.config=config;
 		this.luwrain=luwrain;
+		this.contacts=new Vector<Contact>();
 	}
 
 	private static Object autoRun()
@@ -73,17 +79,15 @@ public class TelegramAccauntImpl implements ChatMenu
 					System.out.println("onWarning"+message);
 				}
 				
-				@Override public void onSearchResult()
+				@Override public void onNewContact(Contact contact)
 				{
-					// TODO Auto-generated method stub
-					
+					contacts.add(contact);
 				}
 				
 				@Override public void onError(String message)
 				{
 					System.out.println("onError"+message);
-					messagener.finish();
-					
+					messagener.finish();				
 				}
 				
 				@Override public void onAuthFinish()
@@ -106,6 +110,11 @@ public class TelegramAccauntImpl implements ChatMenu
 				}
 			});
 		}
+	}
+
+	@Override public Contact[] getContacts()
+	{
+		return contacts.toArray(new Contact[contacts.size()]);
 	}
 
 }

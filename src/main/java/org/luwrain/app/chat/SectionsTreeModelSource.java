@@ -27,7 +27,8 @@ class SectionsTreeModelSource implements CachedTreeModelSource
 	NullCheck.notNull(obj, "obj");
 	if (obj == root)
 	    return base.getAccounts();
-
+	if (obj instanceof TelegramAccauntImpl) 
+		return ((TelegramAccauntImpl)obj).getContacts();
 	return new Object[0];
     }
 }

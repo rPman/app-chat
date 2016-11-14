@@ -9,6 +9,7 @@ import org.luwrain.core.events.*;
 import org.luwrain.popups.EditListPopup;
 import org.luwrain.popups.EditListPopupUtils;
 import org.luwrain.popups.Popups;
+import org.luwrain.app.chat.im.ChatMenu;
 import org.luwrain.controls.*;
 
 class ChatApp implements Application, MonoApp
