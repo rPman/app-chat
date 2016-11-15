@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.codec.binary.Hex;
-import org.luwrain.app.chat.im.Messagener;
+import org.luwrain.app.chat.im.Messenger;
 import org.luwrain.app.chat.im.Contact;
 import org.luwrain.app.chat.im.Events;
 import org.telegram.api.TLConfig;
@@ -35,8 +35,8 @@ import org.telegram.api.user.TLUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLBytes;
 
-public class TelegramImpl implements Messagener {
-
+public class TelegramImpl implements Messenger
+{
 	/** Timeout milliseconds */
 	final int TIMEOUT = 30000;
 	/** Telegram Application hash */
