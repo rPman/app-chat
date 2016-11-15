@@ -184,7 +184,7 @@ String phoneSms = null;
         catch (TimeoutException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} 
         switch (whatdo)
         {
         	case signin:
@@ -350,7 +350,7 @@ events.onAuthFinish();
 		TLRequestAuthSignUp sign = new TLRequestAuthSignUp();
     	sign.setFirstName("dgfgd");
     	sign.setLastName("dfgdfg");
-    	sign.setPhoneCode("45612");
+    	sign.setPhoneCode(code);
     	sign.setPhoneCodeHash(sentCode.getPhoneCodeHash());
     	sign.setPhoneNumber(that.config.phone);
     	try {
