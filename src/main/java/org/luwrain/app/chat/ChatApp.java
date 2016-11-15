@@ -9,7 +9,7 @@ import org.luwrain.core.events.*;
 import org.luwrain.popups.EditListPopup;
 import org.luwrain.popups.EditListPopupUtils;
 import org.luwrain.popups.Popups;
-import org.luwrain.app.chat.im.ChatMenu;
+import org.luwrain.app.chat.im.*;
 import org.luwrain.controls.*;
 
 class ChatApp implements Application, MonoApp
@@ -17,8 +17,11 @@ class ChatApp implements Application, MonoApp
 
     private Luwrain luwrain;
     private final Base base = new Base();
+    private Actions actions;
     public enum TypeChats{Telegram,Jabber};
     private Strings strings;
+
+    private TreeArea treeArea;
 
     @Override public boolean onLaunch(Luwrain luwrain)
     {
@@ -30,6 +33,7 @@ class ChatApp implements Application, MonoApp
 	this.luwrain = luwrain;
 	if (!base.init(luwrain))
 	    return false;
+	actions = new Actions(luwrain);
 	createArea();
 	return true;
     }
@@ -42,7 +46,7 @@ class ChatApp implements Application, MonoApp
 	treeParams.name = strings.sectionsAreaName();
 	//treeParams.clickHandler = (area, obj)->openSection(obj);
 
-	base.setSectionsArea(new TreeArea(treeParams){
+treeArea = new TreeArea(treeParams){
 
 		@Override public boolean onKeyboardEvent(KeyboardEvent event)
 		{
@@ -52,22 +56,19 @@ class ChatApp implements Application, MonoApp
 			{
 			case TAB:
 			    return base.gotoSecondArea();
-			case INSERT:
-				return base.addAccounts();
 			}
 		    return super.onKeyboardEvent(event);
 		}
-
-		
+    
 		@Override public boolean onEnvironmentEvent(EnvironmentEvent event)
 		{
 		    NullCheck.notNull(event, "event");
-		    if (event.getType() == EnvironmentEvent.Type.REGULAR)
+		    if (event.getType() != EnvironmentEvent.Type.REGULAR)
 			return super.onEnvironmentEvent(event);
 		    switch (event.getCode())
 		    {
 		    case ACTION:
-			return base.onTreeAction(event);
+			return onTreeAction(event);
 		    case CLOSE:
 			closeApp();
 			return true;
@@ -78,16 +79,16 @@ class ChatApp implements Application, MonoApp
 
 		@Override public Action[] getAreaActions()
 		{
-		    return base.getTreeActions();
-		}
-		
-		@Override public void onClick(Object obj)
-		{
-			((ChatMenu)obj).onClick();
+		    return actions.getTreeActions();
 		}
 
-	    });
-    
+		@Override public void onClick(Object obj)
+		{
+			((Account)obj).onClick();
+		}
+	    };
+
+    base.setSectionsArea(treeArea);
 
     base.setChatArea(new ChatArea(new DefaultControlEnvironment(luwrain)) {
 
@@ -122,7 +123,15 @@ class ChatApp implements Application, MonoApp
 		base.getChatArea().setEnteringPrefix("proba>");
 		base.getChatArea().setListener((text)->base.getChatArea().addLine("entered>", text));
 
-	}
+    }
+
+    private boolean onTreeAction(EnvironmentEvent event)
+    {
+	NullCheck.notNull(event, "event");
+	if (ActionEvent.isAction(event, "add-account"))
+	    return actions.onAddAccount(treeArea);
+	return false;
+    }
 
  
 

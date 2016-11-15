@@ -2,7 +2,9 @@ package org.luwrain.app.chat;
 
 import java.util.Vector;
 
-import org.luwrain.app.chat.im.ChatMenu;
+import org.luwrain.core.*;
+
+import org.luwrain.app.chat.im.*;
 import org.luwrain.app.chat.im.Contact;
 import org.luwrain.app.chat.im.Events;
 import org.luwrain.app.chat.im.Messagener;
@@ -11,19 +13,22 @@ import org.luwrain.app.chat.im.telegram.TelegramImpl;
 import org.luwrain.core.Luwrain;
 import org.luwrain.popups.Popups;
 
-public class TelegramAccauntImpl implements ChatMenu
+class TelegramAccount implements Account
 {
-	private ConfigAccessor.Telegram config;
+    private final Settings.Telegram sett;
 	private Messagener messagener=null;
 	private Luwrain luwrain;
 	boolean status=false;
 	Vector<Contact> contacts;
 	
 	private static Object autorun=autoRun(); 
-	public TelegramAccauntImpl(Luwrain luwrain,ConfigAccessor.Telegram config)
+
+    TelegramAccount(Luwrain luwrain, Settings.Telegram sett)
 	{
-		this.config=config;
+	    NullCheck.notNull(luwrain, "luwrain");
+	    NullCheck.notNull(sett, "sett");
 		this.luwrain=luwrain;
+		this.sett = sett;
 		this.contacts=new Vector<Contact>();
 	}
 
@@ -44,21 +49,16 @@ public class TelegramAccauntImpl implements ChatMenu
 		return null;
 	}
 
-	public TelegramAccauntImpl()
+    Settings.Telegram getSettings()
+    {
+	return sett;
+    }
+
+	@Override public String toString()
 	{
+		return (status? "*":" ")+"Telegram:"+sett.getPhone("");
 	}
 
-	public ConfigAccessor.Telegram getConfig()
-	{
-		return config;
-	}
-
-	public String toString()
-	{
-		return (status? "*":" ")+"Telegram:"+config.getPhone("");
-	}
-
-	
 	@Override public void onClick()
 	{
 		// TODO Auto-generated method stub
@@ -68,8 +68,7 @@ public class TelegramAccauntImpl implements ChatMenu
 			config.firstName="fhgfhfg";
 			config.lastName="gfhgfh";
 			config.phone="79528900423";
-			
-			messagener=new TelegramImpl(config);
+						messagener=new TelegramImpl(config);
 			messagener.go(new Events()
 			{
 				
