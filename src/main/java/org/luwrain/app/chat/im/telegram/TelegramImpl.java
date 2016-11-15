@@ -97,7 +97,7 @@ public class TelegramImpl implements Messenger
 		Log.debug("chat-telegram", "performing TLRequestHelpGetConfig()");
 		try {
 		    //Problem is here!!
-			tlconfig = api.doRpcCallNonAuth(new TLRequestHelpGetConfig());
+			tlconfig = api.doRpcCallNonAuth(new TLRequestHelpGetConfig(),TIMEOUT,2);
 		Log.debug("chat-telegram", "TLRequestHelpGetConfig() done");
 		} catch (Exception e) 
 {
