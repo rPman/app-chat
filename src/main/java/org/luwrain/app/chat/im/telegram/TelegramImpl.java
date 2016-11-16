@@ -157,7 +157,11 @@ public class TelegramImpl implements Messenger
         try {
 	    Log.debug("chat-telegram", "trying TLRequestAuthCheckPhone");
 	    checked = api.doRpcCallNonAuth(authCheckPhone, TIMEOUT, 2);
-		Log.debug("chat-telegram", "authsendcode:" + checked.getClassId());
+		Log.debug("chat-telegram", "authsendcode:" + checked.isPhoneRegistered());
+		if (checked.isPhoneRegistered()==false)
+		{
+			whatdo = Whatdo.signup;
+		}
         } 
 catch (RpcException e) 
 {

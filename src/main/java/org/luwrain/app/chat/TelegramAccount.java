@@ -72,7 +72,7 @@ new Events(){
 		@Override public void onAuthFinish()
 		{
 		    System.out.println("onAuthFinish");
-		    //		    messenger.checkContacts("gdfg");
+		    messenger.checkContacts("gdfg");
 		    status=true;
 		}
 		@Override public String askTwoPassAuthCode(String message)
