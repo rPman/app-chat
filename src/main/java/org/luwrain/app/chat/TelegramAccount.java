@@ -52,9 +52,8 @@ class TelegramAccount implements Account
 	config.firstName = sett.getFirstName("");
 	config.lastName = sett.getLastName("");
 	config.phone = sett.getPhone("");
-	messenger =new TelegramImpl(config);
-	Log.debug("chat", "Telegram messenger for " + sett.getPhone("") + " prepared");
-	messenger.go(new Events(){
+	messenger =new TelegramImpl(config,
+new Events(){
 		@Override public void onWarning(String message)
 		{
 		    NullCheck.notNull(message, "message");
@@ -68,26 +67,23 @@ class TelegramAccount implements Account
 		{
 		    NullCheck.notNull(message, "message");
 		    Log.error("chat-telegram", message);
-		    messenger.finish();				
+		    //		    messenger.finish();				
 		}
 		@Override public void onAuthFinish()
 		{
 		    System.out.println("onAuthFinish");
-		    messenger.checkContacts("gdfg");
+		    //		    messenger.checkContacts("gdfg");
 		    status=true;
 		}
-		@Override public void on2PassAuth(String message)
+		@Override public String askTwoPassAuthCode(String message)
 		{
-		    // TODO Auto-generated method stub
-		    String code=Popups.simple(luwrain, "Подключение к учетной записи", message, "");
-		    if (code==null || code.isEmpty()) 
-		    { 
-			messenger.finish();
-			return;
-		    }
-		    messenger.twoPass(code);
+		    NullCheck.notEmpty(message, "message");
+return Popups.simple(luwrain, "Подключение к учетной записи", message, "");
 		}
 	    });
+
+	Log.debug("chat", "Telegram messenger for " + sett.getPhone("") + " prepared");
+	messenger.go();
     }
 
     @Override public Contact[] getContacts()

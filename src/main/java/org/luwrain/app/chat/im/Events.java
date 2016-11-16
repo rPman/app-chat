@@ -16,7 +16,7 @@ public interface Events
      * Событие вызывается когда сервер требует кода двухфакторной авторизации
      * @param message необязательное сообщение
      */
-    void on2PassAuth(String message);
+    String askTwoPassAuthCode(String message);
 
     /**
      * Событие вызывается при окончании успешной авторизации
