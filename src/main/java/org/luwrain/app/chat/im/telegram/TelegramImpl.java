@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.codec.binary.Hex;
@@ -27,11 +28,15 @@ import org.telegram.api.functions.auth.TLRequestAuthSignIn;
 import org.telegram.api.functions.auth.TLRequestAuthSignUp;
 import org.telegram.api.functions.contacts.TLRequestContactsGetContacts;
 import org.telegram.api.functions.help.TLRequestHelpGetConfig;
+import org.telegram.api.functions.messages.TLRequestMessagesSendMessage;
+import org.telegram.api.input.peer.TLInputPeerUser;
 import org.telegram.api.updates.TLAbsUpdates;
+import org.telegram.api.updates.TLUpdateShortMessage;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.api.user.TLUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLBytes;
+import org.luwrain.app.chat.TelegramAccount;
 
 import org.luwrain.core.*;
 import org.luwrain.app.chat.im.*;
@@ -52,25 +57,49 @@ public class TelegramImpl implements Messenger
     private TelegramApi api;
     private TLAuthorization auth;
     TLConfig tlconfig;
-
-    private MemoryApiState state;
+    TelegramAccount tAccount;
+    private MemoryApiState memstate;
 
     TLCheckedPhone checked=null;
 
     enum Whatdo {signup,signin,migrate,none};
-    private Whatdo whatdo;
 
-    public TelegramImpl(Config config, Events events) 
+ 
+    private Whatdo whatdo;
+    
+    private Messenger.State state=Messenger.State.none;
+    
+    private static Object autorun=autoRun(); 
+    private static Object autoRun()
+    {
+	org.telegram.mtproto.log.Logger.registerInterface(new org.telegram.mtproto.log.LogInterface() {
+		public void w(String tag, String message) {}
+		public void d(String tag, String message) {}
+		public void e(String tag, String message) {            }
+		public void e(String tag, Throwable t) {}
+	    });
+	org.telegram.api.engine.Logger.registerInterface(new org.telegram.api.engine.LoggerInterface() {
+		public void w(String tag, String message) {}
+		public void d(String tag, String message) {}
+		public void e(String tag, String message) {}
+		public void e(String tag, Throwable t) {}
+	    });
+	return null;
+    }
+    
+    public TelegramImpl(Config config, Events events, TelegramAccount tAccount) 
     {
 	NullCheck.notNull(config, "config");
 	NullCheck.notNull(events, "events");
 	this.config = config;
+	this.tAccount=tAccount;
 	this.events = events;
     }
 
     private boolean init()
     {
-	api = new TelegramApi(state, new AppInfo(97022, "console", "1.0", "1.0", "en"), new ApiCallback() {
+    memstate = new MemoryApiState("Telegram."+config.phone+".raw");
+	api = new TelegramApi(memstate, new AppInfo(APIID, "console", "1.0", "1.0", "en"), new ApiCallback() {
 		@Override public void onAuthCancelled(TelegramApi api) 
 		{
 		    NullCheck.notNull(api, "api");
@@ -84,7 +113,12 @@ public class TelegramImpl implements Messenger
 		@Override public void onUpdate(TLAbsUpdates updates) 
 		{
 		    NullCheck.notNull(updates, "updates");
-		    Log.debug("chat-telegram", "onUpdate:" + updates);
+		    Log.debug("chat-telegram", "onUpdate:" + updates.getClass().getName()+" "+updates);
+		    if (updates instanceof TLUpdateShortMessage) 
+			{
+				TLUpdateShortMessage updatesh=(TLUpdateShortMessage)updates;
+				tAccount.reciveNewMessage(updatesh.getMessage(),updatesh.getDate(),updatesh.getUserId()); 
+			}
 		}
 	    });
 	Log.debug("chat-telegram", "performing TLRequestHelpGetConfig()");
@@ -99,8 +133,8 @@ public class TelegramImpl implements Messenger
 	    events.onError(e.getClass() + ":" + e.getMessage());
 	    return false;
 	}
-	state.updateSettings(tlconfig);
-	state.setPrimaryDc(tlconfig.getThisDc());
+	memstate.updateSettings(tlconfig);
+	memstate.setPrimaryDc(tlconfig.getThisDc());
 	Log.debug("chat-telegram", "getThisDc() is " + tlconfig.getThisDc());
 	//���������, ���� ���� � ����������� ����������� (��������� ��� ��� � hash)
 	return true;
@@ -108,7 +142,6 @@ public class TelegramImpl implements Messenger
 
     @Override public void go()
     {
-	state = new MemoryApiState("Telegram."+config.phone+".raw");
 	whatdo = Whatdo.none;
 	// getAuthKey
 	// 3cc1b1a3763c2cad6815a5de0ffc5208e8cb6b04917d3aa88901985537edfd5d06841111785cea72a65db78f753cfe4803d5a50880cf29dd83a4a40b69a3478fea7740fe1782a945a56a49e80a8be2fcb86ed6cecc32b6ca83d46001e8e6f8ea16806c87d5c793b3e3088c598b158abdca6123fe6a915e579dc834a608ddb25456542c1e8f3290d96c12adbea2adfe7812e68dd7c9a741a1111b7e8445abc5de822abdbd9665e1c869e3ec055dce0460917785d7f8464716a50ed9a25510f51980b5cda420847ee37d7df442901330e8a03f90cd10f49e5694a3da11ccb245ac669e8c9725baae6398d8a529043624c913c2b00bf60684337165e37c5cf8c994
@@ -130,9 +163,11 @@ public class TelegramImpl implements Messenger
 	catch(IOException e)
 	{
 	    Log.debug("chat-telegram", e.getClass().getName() + ":" + e.getMessage());
-	    if (tlconfig.getThisDc() == 1)
-		api.switchToDc(2); else
-		api.switchToDc(1);
+//	    if (tlconfig.getThisDc() == 1)
+//		api.switchToDc(2); else
+//		api.switchToDc(1);
+	    whatdo=Whatdo.signin;
+	    setState(Messenger.State.registred);
 	}
 
 		//api.switchToDc(1);
@@ -152,15 +187,16 @@ public class TelegramImpl implements Messenger
 //		System.out.println("getNearestDc " + ndc.getNearestDc() + ", getThisDc " + ndc.getThisDc());
 //		api.switchToDc(ndc.getNearestDc());
 
-        final TLRequestAuthCheckPhone authCheckPhone = new TLRequestAuthCheckPhone();
+        TLRequestAuthCheckPhone authCheckPhone = new TLRequestAuthCheckPhone();
         authCheckPhone.setPhoneNumber(config.phone);
         try {
 	    Log.debug("chat-telegram", "trying TLRequestAuthCheckPhone");
-	    checked = api.doRpcCallNonAuth(authCheckPhone, TIMEOUT, 2);
+	    checked = api.doRpcCallNonAuth(authCheckPhone,TIMEOUT,2);
 		Log.debug("chat-telegram", "authsendcode:" + checked.isPhoneRegistered());
 		if (checked.isPhoneRegistered()==false)
 		{
 			whatdo = Whatdo.signup;
+			setState(Messenger.State.unregitred);
 		}
         } 
 catch (RpcException e) 
@@ -173,11 +209,13 @@ catch (RpcException e)
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("NETWORK_MIGRATE_".length()));
                     whatdo = Whatdo.signup;
+                    setState(Messenger.State.unregitred);
                 } else 
 if (e.getErrorTag().startsWith("PHONE_MIGRATE_")) 
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("PHONE_MIGRATE_".length()));
                     whatdo=Whatdo.signin;
+                    setState(Messenger.State.registred);
                 } else 
 if (e.getErrorTag().startsWith("USER_MIGRATE_")) 
 {
@@ -209,7 +247,8 @@ if (e.getErrorTag().startsWith("USER_MIGRATE_"))
         {
         	case signin:
         	case signup:
-		    signUp();
+		    sign();
+		    break;
         	case migrate:
 			try {
 				ExportAuthorization();
@@ -239,18 +278,18 @@ events.onAuthFinish();
         }
         	}
 
-    private void signUp()
+    private void sign()
     {
-	Log.debug("chat-telegram", "performing signUp()");
+	//Log.debug("chat-telegram", "performing signUp()");
 		// request twofactor auth
-		final TLRequestAuthSendCode authSendCode =  new TLRequestAuthSendCode();
+		TLRequestAuthSendCode authSendCode =  new TLRequestAuthSendCode();
         authSendCode.setPhoneNumber(config.phone);
-        authSendCode.setApiHash("62155226f23b8565aa3aaa0fa68df878");
-        authSendCode.setApiId(97022);
-	final TLSentCode sentCode;
+        authSendCode.setApiHash(APIHASH);
+        authSendCode.setApiId(APIID);
+	TLSentCode sentCode=null;
 	try {
-	    Log.debug("chat-telegram", "trying RpcRequestAuthSendCode");
-sentCode = api.doRpcCallNonAuth(authSendCode, TIMEOUT, 2);
+	    Log.debug("chat-telegram", "trying RpcRequestAuthSendCode "+memstate.getPrimaryDc());
+sentCode = api.doRpcCallNonAuth(authSendCode,TIMEOUT,memstate.getPrimaryDc());
 	} 
 	catch (Exception e1) 
 	{
@@ -282,12 +321,28 @@ events.onError(whatdo.name()+" "+e.getMessage());
 			}
 			break;
 	        	case signup:
-			    //	        		SignUp(code);
+	        		TLRequestAuthSignUp sign = new TLRequestAuthSignUp();
+	            	sign.setFirstName(config.firstName);
+	            	sign.setLastName(config.lastName);
+	            	sign.setPhoneCode(answer);
+	            	sign.setPhoneCodeHash(sentCode.getPhoneCodeHash());
+	            	sign.setPhoneNumber(config.phone);
+	            	try {
+	        			auth = api.doRpcCallNonAuth(sign);
+	        		} catch (RpcException e) {
+	        			// TODO Auto-generated catch block
+	        			e.printStackTrace();
+	        		} catch (TimeoutException e) {
+	        			// TODO Auto-generated catch block
+	        			e.printStackTrace();
+	        		}
+	            	System.out.println("isTemporalSession "+auth.isTemporalSession()+" user "+auth.getUser().getId());
 	    			break;
 	        	case migrate:
 	        		//TODO ������ ��� ������
 	        		break;
 	        }
+		 setState(Messenger.State.authorized);
 		//������� ��� � hash ����������� � ����
 		 try(FileWriter writer = new FileWriter("Telegram."+config.phone+".txt"))
 	        {
@@ -318,11 +373,19 @@ events.onError(whatdo.name()+" "+e.getMessage());
 		return events;
 	}
 
-	public MemoryApiState getState() 
+	public MemoryApiState getMemState() 
 {
-		return state;
+		return memstate;
 	}
-
+	
+	synchronized public State getState() 
+	{
+			return state;
+		}
+	synchronized public void setState(State state) 
+	{
+			this.state=state;
+		}
     /*
 	public void twoPass(String code) 
 {
@@ -384,9 +447,9 @@ events.onError(e.getMessage());
 		  } 
 		  try {
 			  System.out.println("1"); 
-			  auth=api.doRpcCallNonAuth(impauth, TIMEOUT, 2);
+			  auth=api.doRpcCallNonAuth(impauth, TIMEOUT, api.getState().getPrimaryDc());
 			  System.out.println("2"); 
-			  state.doAuth(auth); 
+			  memstate.doAuth(auth); 
 			  System.out.println("3");
 			  that.events.onAuthFinish(); 
 			  return; 
@@ -422,13 +485,14 @@ events.onError(e.getMessage());
 		sign.setPhoneCodeHash(hash);
 		sign.setPhoneNumber(that.config.phone);
 		try {
-		    auth = api.doRpcCallNonAuth(sign, TIMEOUT, 2);
+		    auth = api.doRpcCallNonAuth(sign, TIMEOUT, api.getState().getPrimaryDc());
 		} 
 catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw e;
 		} 
+		setState(Messenger.State.authorized);
 		System.out.println("isTemporalSession " + auth.isTemporalSession());
 	}
 	
@@ -461,13 +525,14 @@ catch (Exception e) {
 		TLContacts rescnts;
 		try {
 			System.out.println("getSeachContact "+getApi().getState().getUserId());
-			rescnts = (TLContacts) getApi().doRpcCallNonAuth(cntcs);
+			rescnts = (TLContacts) api.doRpcCallNonAuth(cntcs,TIMEOUT,api.getState().getPrimaryDc());
 			System.out.println("contacts users " + rescnts.getUsers().size());
 			System.out.println("contacts result " + rescnts.getContacts().size());
 			for(TLAbsUser o:rescnts.getUsers())
 			{
 				TLUser u=(TLUser)o;
-				TelegramContactImpl contact=new TelegramContactImpl(){};
+				TelegramContactImpl contact=new TelegramContactImpl(tAccount){};
+				contact.init(u.getAccessHash(),u.getId(),new TelegramMessageListImpl());
 				contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
 				getEvents().onNewContact(contact);	
 			}
@@ -502,5 +567,26 @@ catch (Exception e) {
 	@Override public void finish()
 	{
 		api.close();
-			}
+	}
+	
+	public void sendNewMessage(long accessHash,int userId,String text)
+	{
+		try {
+			TLRequestMessagesSendMessage message=new TLRequestMessagesSendMessage();
+			message.setMessage(text);
+	//		System.out.println(rescnts.getUsers().get(0).getId());
+			message.setRandomId(new Date().getTime());
+			TLInputPeerUser	peeruser=new TLInputPeerUser();
+			peeruser.setAccessHash(accessHash);
+			peeruser.setUserId(userId);
+			message.setPeer(peeruser);
+			TLAbsUpdates updates=api.doRpcCallNonAuth(message);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			events.onError(e.getMessage());
+	       	return;
+		} 
+	}
 }

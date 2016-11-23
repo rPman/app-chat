@@ -5,9 +5,6 @@ import java.util.*;
 
 import org.luwrain.core.*;
 import org.luwrain.core.events.EnvironmentEvent;
-import org.luwrain.popups.EditListPopup;
-import org.luwrain.popups.EditListPopupUtils;
-import org.luwrain.popups.Popups;
 import org.luwrain.app.chat.im.*;
 import org.luwrain.controls.*;
 
@@ -74,14 +71,14 @@ class Base
  	return true;
      }
 
-    Object[] loadAccounts()
+    Account[] loadAccounts()
     {
     	if (accounts==null)
     	{
 	    	accounts=new Vector<Account>();
 	    	String[] dirs=luwrain.getRegistry().getDirectories(Settings.ACCOUNTS_PATH);
 	    	if (dirs==null)
-	    		return new String[]{};
+	    		return new Account[]{};
 	    	int id=0;
 	    	for (String str : dirs)
 	    	{
@@ -92,7 +89,14 @@ class Base
 	    			case "Telegram":
     				{
 final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), accountPath );
-    					TelegramAccount telegram=new TelegramAccount(luwrain, sett);
+    					TelegramAccount telegram=new TelegramAccount(luwrain, sett,new UIEvent()
+						{
+							
+							@Override public void onNewMessage()
+							{
+								luwrain.onAreaNewContent(chatArea);								
+							}
+						});
     					accounts.add(telegram);
     					break;
     				}
@@ -114,4 +118,21 @@ final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), ac
     {
 	return treeModel;
     }
+
+	public void init()
+	{
+		Object[] accounts=treeModelSource.getChildObjs(treeModelSource.getRoot());
+		for(Object o:accounts)
+		{
+			Account a=(Account)o;
+			a.doAutoConnect(new Runnable()
+			{
+				@Override public void run()
+				{
+					sectionsArea.refresh();
+				}
+			});
+		}
+		
+	}
 }

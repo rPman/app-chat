@@ -6,16 +6,18 @@ import java.util.*;
 import org.luwrain.core.*;
 import org.luwrain.core.events.*;
 import org.luwrain.core.queries.*;
+import org.luwrain.app.chat.im.Contact;
+import org.luwrain.app.chat.im.Message;
+import org.luwrain.app.chat.im.MessageList;
 import org.luwrain.controls.*;
 
 class ChatArea extends NavigationArea implements  EmbeddedEditLines
 {
     protected Listener listener = null;
     protected final EmbeddedSingleLineEdit edit;
-    protected final Vector<Line> lines = new Vector<Line>();
-
     protected String enteringPrefix = "";
     protected String enteringText = "";
+	private Contact contact=null;
 
     ChatArea(ControlEnvironment environment)
     {
@@ -39,24 +41,31 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     void addLine(String prefix, String text)
     {
 	NullCheck.notNull(prefix, "prefix");
-	NullCheck.notNull(text, "text");
-	lines.add(new Line(prefix, text));
+	NullCheck.notNull(text, "text");if (contact==null) return;
+	if (contact.getMessages()==null) return;
+	if (contact.getMessages().lastMessages()==null) return;
+	contact.getMessages().lastMessages().add(contact.getAccount().sendNewMessage(text,contact));
 	updateEditPos();
 	environment.onAreaNewContent(this);
-	if (getHotPointY() + 1 == lines.size())
+	if (getHotPointY()  == contact.getMessages().lastMessages().size())
 	    setHotPointY(getHotPointY() + 1);
     }
 
     @Override public int getLineCount()
     {
-	return lines.size() + 1;
+    	if (contact==null) return 1;
+    	if (contact.getMessages()==null) return 1;
+	return 1+contact.getMessages().lastMessages().size();
     }
 
     @Override public String getLine(int index)
     {
-	if (index < lines.size())
-	    return lines.get(index).toString();
-	if (index == lines.size())
+    	if (contact==null) return "";
+    	if (contact.getMessages()==null) return "";
+    	if (contact.getMessages().lastMessages()==null) return "";
+	if (index < contact.getMessages().lastMessages().size())
+	    return contact.getMessages().lastMessages().get(index).getMessage();
+	if (index == contact.getMessages().lastMessages().size())
 	    return enteringPrefix + enteringText;
 	return "";
     }
@@ -112,40 +121,33 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     {
 	if (enteringText.isEmpty())
 	    return false;
+	if (contact==null) return false;
+	if (contact.getMessages()==null) return false;
 	if (listener != null)
 	    listener.onNewEnteredMessage(enteringText);
 	enteringText = "";
 	environment.onAreaNewContent(this);
-	setHotPoint(enteringPrefix.length(), lines.size());
+	setHotPoint(enteringPrefix.length(), contact.getMessages().lastMessages().size());
 	return true;
     }
 
 	protected void updateEditPos()
     {
-	edit.setNewPos(enteringPrefix.length(), lines.size());
+		if (contact==null) return;
+		if (contact.getMessages()==null) return;
+	edit.setNewPos(enteringPrefix.length(), contact.getMessages().lastMessages().size());
     }
 
-interface Listener 
-{
-    void onNewEnteredMessage(String text);
-}
-
-    static protected class Line
-    {
-	final String prefix;
-	final String text;
-
-	Line(String prefix, String text)
+	interface Listener 
 	{
-	    NullCheck.notNull(prefix, "prefix");
-	    NullCheck.notNull(text, "text");
-	    this.prefix = prefix;
-	    this.text = text;
+	    void onNewEnteredMessage(String text);
 	}
 
-	@Override public String toString()
+
+	public void selectContact(Contact selected)
 	{
-	    return prefix + text;
+		this.contact=selected;
+		environment.onAreaNewContent(this);
 	}
-    }
+
 }

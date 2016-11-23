@@ -6,4 +6,5 @@ public interface Message
 {
 	Date getDate();
 	String getMessage();
+	Contact getAuthor();
 }

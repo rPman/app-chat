@@ -3,6 +3,9 @@ package org.luwrain.app.chat.im;
 
 public interface Account
 {
-    void onClick();
     Contact[] getContacts();
+	void doAutoConnect(Runnable finish);
+	void onConnect(Runnable finish);
+	Messenger getMessenger();
+	Message sendNewMessage(String text, Contact contact);
 }

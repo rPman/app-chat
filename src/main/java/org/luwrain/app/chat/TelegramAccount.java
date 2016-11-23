@@ -1,5 +1,6 @@
 package org.luwrain.app.chat;
 
+import java.util.Date;
 import java.util.Vector;
 
 import org.luwrain.core.*;
@@ -8,43 +9,29 @@ import org.luwrain.popups.Popups;
 import org.luwrain.app.chat.im.*;
 import org.luwrain.app.chat.im.telegram.*;
 
-class TelegramAccount implements Account
+public class TelegramAccount implements Account
 {
     private final Luwrain luwrain;
     private final Settings.Telegram sett;
     private Messenger messenger;
-	private final Vector<Contact> contacts = new Vector<Contact>();;
+	private final Vector<Contact> contacts = new Vector<Contact>();
+	// если любой контакт null, то это мы сами
+	private Contact me=null;
+	UIEvent uievent;
 
-    private boolean status = false;
 
-    private static Object autorun=autoRun(); 
-
-    TelegramAccount(Luwrain luwrain, Settings.Telegram sett)
+    TelegramAccount(Luwrain luwrain, Settings.Telegram sett,UIEvent uievent)
     {
 	NullCheck.notNull(luwrain, "luwrain");
 	NullCheck.notNull(sett, "sett");
 	this.luwrain=luwrain;
 	this.sett = sett;
+	this.uievent=uievent;
     }
 
-    private static Object autoRun()
-    {
-	org.telegram.mtproto.log.Logger.registerInterface(new org.telegram.mtproto.log.LogInterface() {
-		public void w(String tag, String message) {}
-		public void d(String tag, String message) {}
-		public void e(String tag, String message) {            }
-		public void e(String tag, Throwable t) {}
-	    });
-	org.telegram.api.engine.Logger.registerInterface(new org.telegram.api.engine.LoggerInterface() {
-		public void w(String tag, String message) {}
-		public void d(String tag, String message) {}
-		public void e(String tag, String message) {}
-		public void e(String tag, Throwable t) {}
-	    });
-	return null;
-    }
+    
 
-    @Override public void onClick()
+    @Override public void onConnect(Runnable finish)
     {
 	if (messenger  != null)
 	    return;
@@ -53,7 +40,7 @@ class TelegramAccount implements Account
 	config.lastName = sett.getLastName("");
 	config.phone = sett.getPhone("");
 	messenger =new TelegramImpl(config,
-new Events(){
+		new Events(){
 		@Override public void onWarning(String message)
 		{
 		    NullCheck.notNull(message, "message");
@@ -73,14 +60,20 @@ new Events(){
 		{
 		    System.out.println("onAuthFinish");
 		    messenger.checkContacts("gdfg");
-		    status=true;
+		    finish.run();
 		}
 		@Override public String askTwoPassAuthCode(String message)
 		{
 		    NullCheck.notEmpty(message, "message");
-return Popups.simple(luwrain, "Подключение к учетной записи", message, "");
+		    return Popups.simple(luwrain, "Подключение к учетной записи", message, "");
 		}
-	    });
+		@Override public void onNewMessage(Message message,Contact recipient)
+		{
+			recipient.getMessages().lastMessages().add(message);
+			uievent.onNewMessage();
+		}
+
+	    },this);
 
 	Log.debug("chat", "Telegram messenger for " + sett.getPhone("") + " prepared");
 	messenger.go();
@@ -98,6 +91,56 @@ return Popups.simple(luwrain, "Подключение к учетной запи
 
     @Override public String toString()
     {
-	return (status? "*":" ")+"Telegram:"+sett.getPhone("");
+	return (messenger==null?"":messenger.getState().name())+":Telegram:"+sett.getPhone("");
     }
+
+	@Override public void doAutoConnect(Runnable finish)
+	{	
+		final TelegramAccount that=this;
+		Thread thread=new Thread(new Runnable(){
+
+			@Override public void run()
+			{
+				
+				Boolean authconnect=sett.getAuthConnect(true);
+				//TODO: null почему не null, когда в реестре значение не установлено
+				if (authconnect==null) authconnect=true;
+				if (authconnect==true)
+				{
+					that.onConnect(finish);
+				}				
+			}});
+		thread.start();
+
+	}
+	public void reciveNewMessage(String message,int date,int userId)
+	{
+		//TelegramMessageImpl message=new TelegramMessageImpl();
+		for(Contact c:contacts)
+		{
+			TelegramContactImpl contact=(TelegramContactImpl)c;
+			if (contact.getUserId()==userId)
+			{
+				TelegramMessageImpl msg=new TelegramMessageImpl(message,new Date(),contact);
+				contact.getMessages().lastMessages().add(msg);
+				uievent.onNewMessage();
+				return;
+			}
+		}
+		System.out.println("пришло сообщение от неизвестного userId");
+		
+	}
+	
+	@Override public Message sendNewMessage(String text,Contact contact)
+	{
+		TelegramImpl timp=(TelegramImpl)messenger;
+		TelegramContactImpl tcontact=(TelegramContactImpl)contact;
+		timp.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
+		Message message=new TelegramMessageImpl(text,new Date(),me);
+		return message;
+	}
+	@Override public Messenger getMessenger()
+	{
+		return messenger;
+	}
 }

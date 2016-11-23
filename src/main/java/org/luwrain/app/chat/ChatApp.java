@@ -82,11 +82,25 @@ treeArea = new TreeArea(treeParams){
 		    return actions.getTreeActions();
 		}
 
-		@Override public void onClick(Object obj)
-		{
-			((Account)obj).onClick();
-		}
-	    };
+//		@Override public void onClick(Object obj)
+//		{
+//			if (obj instanceof Account)
+//			{		
+//				((Account)obj).onConnect(new Runnable()
+//				{
+//					@Override public void run()
+//					{
+//					}
+//				});
+//			}
+//			else
+//				if (obj instanceof Contact)
+//				{
+//					
+//					Contact contact=((Contact)obj);
+//				}
+//		}
+	};
 
     base.setSectionsArea(treeArea);
 
@@ -100,6 +114,8 @@ treeArea = new TreeArea(treeParams){
 		{
 		case TAB:
 		    return base.gotoSectionsArea();
+//		case ENTER:
+//			return base.getChatArea().sendNewMessage();
 		}
 		return super.onKeyboardEvent(event);
 	    }
@@ -123,6 +139,7 @@ treeArea = new TreeArea(treeParams){
 		base.getChatArea().setEnteringPrefix("proba>");
 		base.getChatArea().setListener((text)->base.getChatArea().addLine("entered>", text));
 
+		base.init();
     }
 
     private boolean onTreeAction(EnvironmentEvent event)
@@ -130,6 +147,8 @@ treeArea = new TreeArea(treeParams){
 	NullCheck.notNull(event, "event");
 	if (ActionEvent.isAction(event, "add-account"))
 	    return actions.onAddAccount(treeArea);
+	if (ActionEvent.isAction(event, "select-item"))
+	    return actions.onSelectItem(treeArea,base.getChatArea());
 	return false;
     }
 
@@ -155,4 +174,5 @@ private void closeApp()
     {
 	luwrain.closeApp();
     }
+
 }

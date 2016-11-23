@@ -27,4 +27,6 @@ public interface Events
      * Событие вызывается на получение результата поиска
      */
     void onNewContact(Contact contact);
+
+	void onNewMessage(Message message,Contact recipient);
 }

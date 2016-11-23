@@ -4,9 +4,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Vector;
 
-public interface Messages 
+public interface MessageList 
 {
-	Vector<Message> lastMessage();
+	Vector<Message> lastMessages();
 	int unreadCount();
 	void decreaseCount(int cnt);
 	
