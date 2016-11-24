@@ -149,6 +149,8 @@ treeArea = new TreeArea(treeParams){
 	    return actions.onAddAccount(treeArea);
 	if (ActionEvent.isAction(event, "select-item"))
 	    return actions.onSelectItem(treeArea,base.getChatArea());
+	if (ActionEvent.isAction(event, "add-contact"))
+	    return actions.onAddContact(treeArea,base.getChatArea());
 	return false;
     }
 

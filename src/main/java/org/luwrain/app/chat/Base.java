@@ -97,8 +97,9 @@ final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), ac
 								luwrain.onAreaNewContent(chatArea);								
 							}
 
-							@Override public void onUnknownContact()
+							@Override public void onUnknownContactReciveMessage(String message)
 							{
+								luwrain.message("Неизвестный контакт: "+message);
 								luwrain.onAreaNewContent(sectionsArea);
 								
 							}

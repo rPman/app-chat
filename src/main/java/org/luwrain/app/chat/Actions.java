@@ -23,6 +23,7 @@ class Actions
 	 return new Action[]{
 		     new Action("add-account", "Добавить новую учётную запись", new KeyboardEvent(KeyboardEvent.Special.INSERT)),
 		     new Action("select-item", "Выбрать контакт для общения", new KeyboardEvent(KeyboardEvent.Special.ENTER)),
+		     new Action("add-contact", "Добавить контакт", new KeyboardEvent(KeyboardEvent.Special.F6)),
 	 };
      }
 
@@ -99,6 +100,29 @@ class Actions
 				}
 			});
 		}
+		return false;
+	}
+
+	public boolean onAddContact(TreeArea treeArea,ChatArea chatArea)
+	{
+		Object obj=treeArea.selected();
+		Account account;
+		if (obj instanceof Account)
+			account=(Account)obj;
+		else
+			if (obj instanceof Contact)
+				account=((Contact)obj).getAccount();
+			else
+				return false;
+//		if (contact==null) return;
+		account.askCreateContact(new Runnable()
+		{
+			@Override public void run()
+			{
+				treeArea.refresh();
+				luwrain.onAreaNewContent(treeArea);				
+			}
+		});
 		return false;
 	}
 }

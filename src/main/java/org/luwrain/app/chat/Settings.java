@@ -20,8 +20,8 @@ interface Settings
 	String getPhone(String def);
 	String getAuthSmsCode(String def);
 	String getAuthPhoneHash(String def);
-	Boolean getAuthConnect(Boolean def);
-	void setAuthConnect(Boolean val);
+	boolean getAutoConnect(boolean def);
+	void setAutoConnect(boolean val);
 	void setFirstName(String val);
 	void setLastName(String val);
 	void setPhone(String val);
@@ -36,8 +36,8 @@ interface Settings
 	String getPort(String def);
 	String getLogin(String def);
 	String getPassword(String def);
-	Boolean getAuthConnect(Boolean def);
-	void setAuthConnect(Boolean val);
+	boolean getAutoConnect(boolean def);
+	void setAutoConnect(boolean val);
 	void setServer(String val);
 	void setDomain(String val);
 	void setPort(String val);

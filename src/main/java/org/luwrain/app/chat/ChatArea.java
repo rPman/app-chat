@@ -6,6 +6,7 @@ import java.util.*;
 import org.luwrain.core.*;
 import org.luwrain.core.events.*;
 import org.luwrain.core.queries.*;
+import org.luwrain.app.chat.im.Account;
 import org.luwrain.app.chat.im.Contact;
 import org.luwrain.app.chat.im.Message;
 import org.luwrain.app.chat.im.MessageList;
@@ -148,6 +149,19 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 	{
 		this.contact=selected;
 		environment.onAreaNewContent(this);
+	}
+
+	public void addContact(Account account)
+	{
+		ChatArea that=this;
+//		if (contact==null) return;
+		account.askCreateContact(new Runnable()
+		{
+			@Override public void run()
+			{
+				environment.onAreaNewContent(that);				
+			}
+		});
 	}
 
 }

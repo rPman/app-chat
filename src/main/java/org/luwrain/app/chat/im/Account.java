@@ -8,4 +8,5 @@ public interface Account
 	void onConnect(Runnable finish);
 	Messenger getMessenger();
 	Message sendNewMessage(String text, Contact contact);
+	void askCreateContact(Runnable finished);
 }

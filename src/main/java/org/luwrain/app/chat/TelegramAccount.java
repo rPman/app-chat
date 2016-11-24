@@ -102,7 +102,7 @@ public class TelegramAccount implements Account
 			@Override public void run()
 			{
 				
-				Boolean authconnect=sett.getAuthConnect(true);
+				Boolean authconnect=sett.getAutoConnect(true);
 				//TODO: null почему не null, когда в реестре значение не установлено
 				if (authconnect==null) authconnect=true;
 				if (authconnect==true)
@@ -128,18 +128,18 @@ public class TelegramAccount implements Account
 			}
 		}
 		//
-		addNewContact(userId);
-		uievent.onUnknownContact();
+//		addNewContact(userId);
+		uievent.onUnknownContactReciveMessage(message);
 //		System.out.println("пришло сообщение от неизвестного userId");
 		
 	}
 	
-	private void addNewContact(int userId)
-	{
-		TelegramImpl timp=(TelegramImpl)messenger;
-		timp.addNewContact(userId);
-		
-	}
+//	private void addNewContact(int userId)
+//	{
+//		TelegramImpl timp=(TelegramImpl)messenger;
+//		timp.addNewContact(userId);
+//		
+//	}
 
 
 
@@ -154,5 +154,25 @@ public class TelegramAccount implements Account
 	@Override public Messenger getMessenger()
 	{
 		return messenger;
+	}
+
+
+
+	@Override public void askCreateContact(Runnable finished)
+	{
+		String phone = Popups.simple(luwrain, "Добавление нового контакта", "Введите номер мобильного телефона:", "");
+		phone=phone.trim();
+		if(phone==null || phone.isEmpty())
+		    return;
+		String firstname = Popups.simple(luwrain, "Добавление нового контакта", "Введите имя ","");
+		firstname=firstname.trim();
+		String lastname="";
+		if (!(firstname==null || firstname.isEmpty()))
+		{
+		    lastname = Popups.simple(luwrain, "Добавление нового контакта", "Введите второе имя ","");
+		    lastname=lastname.trim();
+		}
+		TelegramImpl timp=(TelegramImpl)messenger;
+		timp.addNewContact(phone,firstname,lastname,finished);
 	}
 }

@@ -19,6 +19,8 @@ import org.telegram.api.contacts.TLContacts;
 import org.telegram.api.contacts.TLImportedContacts;
 import org.telegram.api.engine.ApiCallback;
 import org.telegram.api.engine.AppInfo;
+import org.telegram.api.engine.RpcCallback;
+import org.telegram.api.engine.RpcCallbackEx;
 import org.telegram.api.engine.RpcException;
 import org.telegram.api.engine.TelegramApi;
 import org.telegram.api.functions.auth.TLRequestAuthCheckPhone;
@@ -42,6 +44,7 @@ import org.telegram.api.user.TLAbsUser;
 import org.telegram.api.user.TLUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLBytes;
+import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 import org.luwrain.app.chat.TelegramAccount;
 
@@ -51,7 +54,7 @@ import org.luwrain.app.chat.im.*;
 public class TelegramImpl implements Messenger
 {
     /** Timeout milliseconds */
-    final int TIMEOUT = 30000;
+    final int TIMEOUT = 15000;
 
     /** Telegram Application hash */
     final String APIHASH = "62155226f23b8565aa3aaa0fa68df878";
@@ -198,7 +201,7 @@ public class TelegramImpl implements Messenger
         authCheckPhone.setPhoneNumber(config.phone);
         try {
 	    Log.debug("chat-telegram", "trying TLRequestAuthCheckPhone");
-	    checked = api.doRpcCallNonAuth(authCheckPhone,TIMEOUT,2);
+	    checked = api.doRpcCallNonAuth(authCheckPhone,TIMEOUT,api.getState().getPrimaryDc());
 		Log.debug("chat-telegram", "authsendcode:" + checked.isPhoneRegistered());
 		if (checked.isPhoneRegistered()==false)
 		{
@@ -597,7 +600,7 @@ catch (Exception e) {
 		} 
 	}
 
-	public void addNewContact(int userId)
+	public void addNewContact(String phone,String firstname,String lastname,Runnable finished)
 	{
 //		TLRequestUsersGetUsers gu=new TLRequestUsersGetUsers();
 //		TLVector<TLAbsInputUser> ids=new TLVector<TLAbsInputUser>();
@@ -606,9 +609,23 @@ catch (Exception e) {
 //		ids.add(iu);
 //		gu.setId(ids);
 //		TLInputPhoneContact pc=new TLInputPhoneContact();
-//		try
-//		{
-//			 TLVector<TLAbsUser> au=api.doRpcCall(gu);
+//		pc.setClientId(userId);
+////		try
+////		{
+//			 TLVector<TLAbsUser> au=api.doRpcCallNonAuth(gu,TIMEOUT,new RpcCallback<TL>()
+//				{
+//
+//					@Override public void onError(int arg0,String arg1)
+//					{
+//						// TODO Auto-generated method stub
+//						
+//					}
+//
+//					@Override public void onResult(TLUser arg0)
+//					{
+//						// TODO Auto-generated method stub
+//						
+//					}});
 //			 for(TLAbsUser o:au)
 //				{
 //					TLUser u=(TLUser)o;
@@ -619,35 +636,38 @@ catch (Exception e) {
 //						pc.setPhone(u.getPhone());
 //					}
 //				}
-//		} catch(TimeoutException | IOException e)
-//		{
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			events.onError(e.getMessage());
-//			return;
-//		}
+////		} catch(TimeoutException | IOException e)
+////		{
+////			// TODO Auto-generated catch block
+////			e.printStackTrace();
+////			events.onError(e.getMessage());
+////			return;
+////		}
 		
 		
 		TLRequestContactsImportContacts ic=new TLRequestContactsImportContacts();
 		TLInputPhoneContact pc=new TLInputPhoneContact();
-		pc.setClientId(userId);
-		pc.setFirstName("fdgdfg");
-		pc.setLastName("cbcv");
-		pc.setPhone("+79039502758");
+		//pc.setClientId(userId);
+		pc.setFirstName(firstname);
+		pc.setLastName(lastname);
+		pc.setPhone(phone);
 		TLVector<TLInputPhoneContact> vpc=new TLVector<TLInputPhoneContact>();
 		vpc.add(pc);
 		ic.setContacts(vpc);
 		ic.setReplace(false);
-//		ic.getContacts().add(pc);
-		try
+		api.doRpcCallNonAuth(ic,TIMEOUT,new RpcCallback<TLImportedContacts>()
 		{
-			api.doRpcCallNonAuth(ic,TIMEOUT,api.getState().getPrimaryDc());
-		} catch(TimeoutException | IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			events.onError(e.getMessage());
-			return;
-		}
+
+			@Override public void onError(int arg0,String arg1)
+			{
+				System.out.println("Add contact error: "+arg1);				
+			}
+
+			@Override public void onResult(TLImportedContacts arg0)
+			{
+				System.out.println("Add contact success: "+arg0.getUsers().size());				
+
+				finished.run();
+			}});
 	}
 }
