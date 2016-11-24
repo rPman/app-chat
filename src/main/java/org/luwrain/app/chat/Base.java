@@ -96,6 +96,12 @@ final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), ac
 							{
 								luwrain.onAreaNewContent(chatArea);								
 							}
+
+							@Override public void onUnknownContact()
+							{
+								luwrain.onAreaNewContent(sectionsArea);
+								
+							}
 						});
     					accounts.add(telegram);
     					break;

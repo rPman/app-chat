@@ -16,6 +16,7 @@ import org.telegram.api.auth.TLExportedAuthorization;
 import org.telegram.api.auth.TLSentCode;
 import org.telegram.api.contact.TLContact;
 import org.telegram.api.contacts.TLContacts;
+import org.telegram.api.contacts.TLImportedContacts;
 import org.telegram.api.engine.ApiCallback;
 import org.telegram.api.engine.AppInfo;
 import org.telegram.api.engine.RpcException;
@@ -27,15 +28,21 @@ import org.telegram.api.functions.auth.TLRequestAuthSendCode;
 import org.telegram.api.functions.auth.TLRequestAuthSignIn;
 import org.telegram.api.functions.auth.TLRequestAuthSignUp;
 import org.telegram.api.functions.contacts.TLRequestContactsGetContacts;
+import org.telegram.api.functions.contacts.TLRequestContactsImportContacts;
 import org.telegram.api.functions.help.TLRequestHelpGetConfig;
 import org.telegram.api.functions.messages.TLRequestMessagesSendMessage;
+import org.telegram.api.functions.users.TLRequestUsersGetUsers;
+import org.telegram.api.input.TLInputPhoneContact;
 import org.telegram.api.input.peer.TLInputPeerUser;
+import org.telegram.api.input.user.TLAbsInputUser;
+import org.telegram.api.input.user.TLInputUser;
 import org.telegram.api.updates.TLAbsUpdates;
 import org.telegram.api.updates.TLUpdateShortMessage;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.api.user.TLUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLBytes;
+import org.telegram.tl.TLVector;
 import org.luwrain.app.chat.TelegramAccount;
 
 import org.luwrain.core.*;
@@ -588,5 +595,59 @@ catch (Exception e) {
 			events.onError(e.getMessage());
 	       	return;
 		} 
+	}
+
+	public void addNewContact(int userId)
+	{
+//		TLRequestUsersGetUsers gu=new TLRequestUsersGetUsers();
+//		TLVector<TLAbsInputUser> ids=new TLVector<TLAbsInputUser>();
+//		TLInputUser iu=new TLInputUser();
+//		iu.setUserId(userId);
+//		ids.add(iu);
+//		gu.setId(ids);
+//		TLInputPhoneContact pc=new TLInputPhoneContact();
+//		try
+//		{
+//			 TLVector<TLAbsUser> au=api.doRpcCall(gu);
+//			 for(TLAbsUser o:au)
+//				{
+//					TLUser u=(TLUser)o;
+//					if (u.getId()==userId)
+//					{
+//						pc.setFirstName(u.getFirstName());
+//						pc.setLastName(u.getLastName());
+//						pc.setPhone(u.getPhone());
+//					}
+//				}
+//		} catch(TimeoutException | IOException e)
+//		{
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			events.onError(e.getMessage());
+//			return;
+//		}
+		
+		
+		TLRequestContactsImportContacts ic=new TLRequestContactsImportContacts();
+		TLInputPhoneContact pc=new TLInputPhoneContact();
+		pc.setClientId(userId);
+		pc.setFirstName("fdgdfg");
+		pc.setLastName("cbcv");
+		pc.setPhone("+79039502758");
+		TLVector<TLInputPhoneContact> vpc=new TLVector<TLInputPhoneContact>();
+		vpc.add(pc);
+		ic.setContacts(vpc);
+		ic.setReplace(false);
+//		ic.getContacts().add(pc);
+		try
+		{
+			api.doRpcCallNonAuth(ic,TIMEOUT,api.getState().getPrimaryDc());
+		} catch(TimeoutException | IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			events.onError(e.getMessage());
+			return;
+		}
 	}
 }

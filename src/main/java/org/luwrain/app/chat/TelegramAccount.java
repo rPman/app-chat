@@ -127,10 +127,22 @@ public class TelegramAccount implements Account
 				return;
 			}
 		}
-		System.out.println("пришло сообщение от неизвестного userId");
+		//
+		addNewContact(userId);
+		uievent.onUnknownContact();
+//		System.out.println("пришло сообщение от неизвестного userId");
 		
 	}
 	
+	private void addNewContact(int userId)
+	{
+		TelegramImpl timp=(TelegramImpl)messenger;
+		timp.addNewContact(userId);
+		
+	}
+
+
+
 	@Override public Message sendNewMessage(String text,Contact contact)
 	{
 		TelegramImpl timp=(TelegramImpl)messenger;
