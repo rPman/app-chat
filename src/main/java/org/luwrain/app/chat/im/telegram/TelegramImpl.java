@@ -534,6 +534,7 @@ catch (Exception e) {
 		cntcs.setHash("");
 		TLContacts rescnts;
 		try {
+			getEvents().onBeginAddingContact();
 			System.out.println("getSeachContact "+getApi().getState().getUserId());
 			rescnts = (TLContacts) api.doRpcCallNonAuth(cntcs,TIMEOUT,api.getState().getPrimaryDc());
 			System.out.println("contacts users " + rescnts.getUsers().size());

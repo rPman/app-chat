@@ -72,6 +72,10 @@ public class TelegramAccount implements Account
 			recipient.getMessages().lastMessages().add(message);
 			uievent.onNewMessage();
 		}
+		@Override public void onBeginAddingContact()
+		{
+			contacts.clear();			
+		}
 
 	    },this);
 
