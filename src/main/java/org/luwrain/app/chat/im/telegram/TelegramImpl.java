@@ -529,7 +529,7 @@ catch (Exception e) {
 	}
     */
 
-	public void checkContacts(String q) {
+	public void checkContacts() {
 		TLRequestContactsGetContacts cntcs = new TLRequestContactsGetContacts();
 		cntcs.setHash("");
 		TLContacts rescnts;

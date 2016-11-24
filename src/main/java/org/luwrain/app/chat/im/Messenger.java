@@ -16,7 +16,7 @@ public interface Messenger
 	    	none}
     void go();
     //    void twoPass(String code);
-    void checkContacts(String q);
+    void checkContacts();
     void finish();
 	State getState();
 	void setState(State state);

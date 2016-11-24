@@ -59,7 +59,7 @@ public class TelegramAccount implements Account
 		@Override public void onAuthFinish()
 		{
 		    System.out.println("onAuthFinish");
-		    messenger.checkContacts("gdfg");
+		    messenger.checkContacts();
 		    finish.run();
 		}
 		@Override public String askTwoPassAuthCode(String message)
@@ -173,6 +173,16 @@ public class TelegramAccount implements Account
 		    lastname=lastname.trim();
 		}
 		TelegramImpl timp=(TelegramImpl)messenger;
-		timp.addNewContact(phone,firstname,lastname,finished);
+		timp.addNewContact(phone,firstname,lastname,new Runnable()
+		{
+			
+			@Override public void run()
+			{
+				messenger.checkContacts();		
+				finished.run();
+			}
+			
+		});
+		
 	}
 }
