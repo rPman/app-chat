@@ -32,7 +32,7 @@ TelegramAccountListener listener)
 	this.listener = listener;
     }
 
-    @Override public void onConnect(Runnable finish)
+    @Override public void connect(Runnable onFinished)
     {
 	if (messenger  != null)
 	    return;
@@ -60,7 +60,7 @@ TelegramAccountListener listener)
 		{
 		    Log.debug("chat-telegram",  "onAuthFinish");
 		    messenger.checkContacts();
-		    finish.run();
+		    luwrain.runInMainThread(onFinished);
 		}
 		@Override public String askTwoPassAuthCode(String message)
 		{
@@ -86,24 +86,12 @@ listener.onNewMessage();
 	return contacts.toArray(new Contact[contacts.size()]);
     }
 
-
-    @Override public void doAutoConnect(Runnable finish)
+    @Override public void autoConnect(Runnable onFinished)
 	{	
-	    //		final TelegramAccount that=this;
-		Thread thread=new Thread(new Runnable(){
-			@Override public void run()
-			{
-			    Boolean authconnect=sett.getAutoConnect(true);
-				//TODO: null почему не null, когда в реестре значение не установлено
-				if (authconnect==null) 
-authconnect=true;
-				if (authconnect==true)
-				{
-				    onConnect(finish);
-				}				
-			}});
-		thread.start();
-
+	    NullCheck.notNull(onFinished, "onFinished");
+	    if (!sett.getAutoConnect(true))
+		return;
+	    new Thread(()->connect(onFinished)).start();
 	}
 
 public void receiveNewMessage(String message,int date,int userId)
@@ -170,11 +158,6 @@ listener.onUnknownContactReciveMessage(message);
 			}
 				});
 			}
-
-    Settings.Telegram getSettings()
-    {
-	return sett;
-    }
 
     @Override public String toString()
     {

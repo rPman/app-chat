@@ -141,7 +141,7 @@ chatArea.setListener((text)->chatArea.addLine("entered>", text));
     private void autoConnect()
     {
 	for(Account a: base.loadAccounts())
-	    a.doAutoConnect(()->treeArea.refresh());
+	    a.autoConnect(()->treeArea.refresh());
     }
 
     private boolean gotoTreeArea()

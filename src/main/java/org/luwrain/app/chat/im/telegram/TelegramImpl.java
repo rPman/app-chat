@@ -1,14 +1,23 @@
 
 package org.luwrain.app.chat.im.telegram;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Date;
-import java.util.concurrent.TimeoutException;
+//import java.io.BufferedReader;
+//import java.io.FileReader;
+//import java.io.FileWriter;
+//import java.io.IOException;
+//import java.util.Date;
+//import java.util.concurrent.TimeoutException;
+
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
+
+import org.luwrain.core.*;
+import org.luwrain.app.chat.im.*;
+import org.luwrain.app.chat.TelegramAccount;
 
 import org.apache.commons.codec.binary.Hex;
+
 import org.telegram.api.TLConfig;
 import org.telegram.api.auth.TLAuthorization;
 import org.telegram.api.auth.TLCheckedPhone;
@@ -48,13 +57,10 @@ import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 import org.luwrain.app.chat.TelegramAccount;
 
-import org.luwrain.core.*;
-import org.luwrain.app.chat.im.*;
-
 public class TelegramImpl
 {
     /** Timeout milliseconds */
-    final int TIMEOUT = 15000;
+    private final int TIMEOUT = 15000;
 
     /** Telegram Application hash */
     final String APIHASH = "62155226f23b8565aa3aaa0fa68df878";
@@ -72,10 +78,9 @@ public class TelegramImpl
 
     TLCheckedPhone checked=null;
 
-    enum Whatdo {signup,signin,migrate,none};
+    enum Task {SIGN_UP, SIGN_IN, MIGRATE, NONE};
 
- 
-    private Whatdo whatdo;
+    private Task task;
     
     private State state = State.none;
     
@@ -152,7 +157,7 @@ public class TelegramImpl
 
     public void run()
     {
-	whatdo = Whatdo.none;
+	task = Task.NONE;
 	// getAuthKey
 	// 3cc1b1a3763c2cad6815a5de0ffc5208e8cb6b04917d3aa88901985537edfd5d06841111785cea72a65db78f753cfe4803d5a50880cf29dd83a4a40b69a3478fea7740fe1782a945a56a49e80a8be2fcb86ed6cecc32b6ca83d46001e8e6f8ea16806c87d5c793b3e3088c598b158abdca6123fe6a915e579dc834a608ddb25456542c1e8f3290d96c12adbea2adfe7812e68dd7c9a741a1111b7e8445abc5de822abdbd9665e1c869e3ec055dce0460917785d7f8464716a50ed9a25510f51980b5cda420847ee37d7df442901330e8a03f90cd10f49e5694a3da11ccb245ac669e8c9725baae6398d8a529043624c913c2b00bf60684337165e37c5cf8c994
 	// getUserId 197321144
@@ -176,7 +181,7 @@ public class TelegramImpl
 //	    if (tlconfig.getThisDc() == 1)
 //		api.switchToDc(2); else
 //		api.switchToDc(1);
-	    whatdo=Whatdo.signin;
+	    task = Task.SIGN_IN;
 	    setState(State.REGISTERED);
 	}
 
@@ -205,7 +210,7 @@ public class TelegramImpl
 		Log.debug("chat-telegram", "authsendcode:" + checked.isPhoneRegistered());
 		if (checked.isPhoneRegistered()==false)
 		{
-			whatdo = Whatdo.signup;
+			task = Task.SIGN_UP;
 			setState(State.UNREGISTERED);
 		}
         } 
@@ -218,25 +223,25 @@ catch (RpcException e)
                 if (e.getErrorTag().startsWith("NETWORK_MIGRATE_")) 
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("NETWORK_MIGRATE_".length()));
-                    whatdo = Whatdo.signup;
+                    task = Task.SIGN_UP;
                     setState(State.UNREGISTERED);
                 } else 
 if (e.getErrorTag().startsWith("PHONE_MIGRATE_")) 
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("PHONE_MIGRATE_".length()));
-                    whatdo=Whatdo.signin;
+                    task = Task.SIGN_IN;
                     setState(State.REGISTERED);
                 } else 
 if (e.getErrorTag().startsWith("USER_MIGRATE_")) 
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("USER_MIGRATE_".length()));
-                    whatdo=Whatdo.migrate;
+                    task = Task.MIGRATE;
                 } else 
 {
     events.onError(e.getClass().getName() + ":" + e.getErrorCode() + ":" + e.getMessage());
     				return;
                 }
-		Log.debug("chat-telegram ", "whatdo :" + whatdo);
+		Log.debug("chat-telegram ", "whatdo :" + task);
                 api.switchToDc(destDC);
                 //phone = "99966"+destDC+"2345";
 		Log.debug("chat-telegram", "destDC:" + destDC);
@@ -252,14 +257,14 @@ if (e.getErrorTag().startsWith("USER_MIGRATE_"))
 			e.printStackTrace();
 		}
 
-	Log.debug("chat-telegram", "switch(" + whatdo + ")");
-        switch (whatdo)
+	Log.debug("chat-telegram", "switch(" + task + ")");
+        switch (task)
         {
-        	case signin:
-        	case signup:
+        	case SIGN_IN:
+        	case SIGN_UP:
 		    sign();
 		    break;
-        	case migrate:
+        	case MIGRATE:
 			try {
 				ExportAuthorization();
 				ImportAuthorization();
@@ -267,11 +272,11 @@ if (e.getErrorTag().startsWith("USER_MIGRATE_"))
 {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-events.onError(whatdo.name()+" "+e.getMessage());
+events.onError(task.name()+" "+e.getMessage());
 				return;
 			}
         		return;
-        	case none:
+        	case NONE:
         		final String code=phoneSms;
         		final String hash=phoneHash;
 			try {
@@ -280,7 +285,7 @@ events.onError(whatdo.name()+" "+e.getMessage());
 catch (Exception e) 
 {
 				// TODO Auto-generated catch block
-events.onError(whatdo.name()+" "+e.getMessage());
+events.onError(task.name()+" "+e.getMessage());
 				return;
 			}
 events.onAuthFinish(); 
@@ -305,7 +310,7 @@ sentCode = api.doRpcCallNonAuth(authSendCode,TIMEOUT,memstate.getPrimaryDc());
 	{
 	    Log.error("chat-telegram", e1.getClass().getName() + ":" + e1.getMessage());
 	    e1.printStackTrace();
-	    events.onError(whatdo.name()+" "+e1.getMessage());
+	    events.onError(task.name()+" "+e1.getMessage());
 	    finish();
 	    return;
 	}
@@ -318,19 +323,19 @@ sentCode = api.doRpcCallNonAuth(authSendCode,TIMEOUT,memstate.getPrimaryDc());
 
 		final TelegramImpl that = this;
 		auth = null;
-		 switch (whatdo)
+		 switch (task)
 	        {
-	        	case signin:
+	        	case SIGN_IN:
 			try {
 				signIn(answer, sentCode.getPhoneCodeHash());
 			} 
 catch (Exception e) 
 {
-events.onError(whatdo.name()+" "+e.getMessage());
+events.onError(task.name()+" "+e.getMessage());
 				return;
 			}
 			break;
-	        	case signup:
+	        	case SIGN_UP:
 	        		TLRequestAuthSignUp sign = new TLRequestAuthSignUp();
 	            	sign.setFirstName(config.firstName);
 	            	sign.setLastName(config.lastName);
@@ -348,7 +353,7 @@ events.onError(whatdo.name()+" "+e.getMessage());
 	        		}
 	            	System.out.println("isTemporalSession "+auth.isTemporalSession()+" user "+auth.getUser().getId());
 	    			break;
-	        	case migrate:
+	        	case MIGRATE:
 	        		//TODO ������ ��� ������
 	        		break;
 	        }

@@ -91,7 +91,7 @@ boolean onSelectItem(TreeArea treeArea,ChatArea chatArea)
 		} else
 		if (treeArea.selected() instanceof Account)
 		{		
-		    ((Account)treeArea.selected()).onConnect(()->treeArea.refresh());
+		    ((Account)treeArea.selected()).connect(()->treeArea.refresh());
 		}
 		return false;
 	}
