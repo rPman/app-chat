@@ -19,7 +19,6 @@ public class TelegramAccount implements Account
 	private Contact me=null;
 	UIEvent uievent;
 
-
     TelegramAccount(Luwrain luwrain, Settings.Telegram sett,UIEvent uievent)
     {
 	NullCheck.notNull(luwrain, "luwrain");
@@ -28,8 +27,6 @@ public class TelegramAccount implements Account
 	this.sett = sett;
 	this.uievent=uievent;
     }
-
-    
 
     @Override public void onConnect(Runnable finish)
     {
@@ -40,8 +37,8 @@ public class TelegramAccount implements Account
 	config.lastName = sett.getLastName("");
 	config.phone = sett.getPhone("");
 	messenger =new TelegramImpl(config,
-		new Events(){
-		@Override public void onWarning(String message)
+				    new Events(){
+					@Override public void onWarning(String message)
 		{
 		    NullCheck.notNull(message, "message");
 		    Log.warning("chat-telegram", message);
@@ -76,9 +73,7 @@ public class TelegramAccount implements Account
 		{
 			contacts.clear();			
 		}
-
 	    },this);
-
 	Log.debug("chat", "Telegram messenger for " + sett.getPhone("") + " prepared");
 	messenger.go();
     }
@@ -102,13 +97,13 @@ public class TelegramAccount implements Account
 	{	
 		final TelegramAccount that=this;
 		Thread thread=new Thread(new Runnable(){
-
 			@Override public void run()
 			{
 				
 				Boolean authconnect=sett.getAutoConnect(true);
 				//TODO: null почему не null, когда в реестре значение не установлено
-				if (authconnect==null) authconnect=true;
+				if (authconnect==null) 
+authconnect=true;
 				if (authconnect==true)
 				{
 					that.onConnect(finish);
@@ -117,7 +112,8 @@ public class TelegramAccount implements Account
 		thread.start();
 
 	}
-	public void reciveNewMessage(String message,int date,int userId)
+
+public void reciveNewMessage(String message,int date,int userId)
 	{
 		//TelegramMessageImpl message=new TelegramMessageImpl();
 		for(Contact c:contacts)
@@ -155,12 +151,11 @@ public class TelegramAccount implements Account
 		Message message=new TelegramMessageImpl(text,new Date(),me);
 		return message;
 	}
+
 	@Override public Messenger getMessenger()
 	{
 		return messenger;
 	}
-
-
 
 	@Override public void askCreateContact(Runnable finished)
 	{
@@ -185,8 +180,6 @@ public class TelegramAccount implements Account
 				messenger.checkContacts();		
 				finished.run();
 			}
-			
-		});
-		
-	}
+				});
+			}
 }

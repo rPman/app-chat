@@ -10,29 +10,26 @@ import org.luwrain.controls.*;
 
 class Base
 {
-    private final String[] TYPE_CHATS=new String[]{"Telegram","Jabber"};
-
-    
     private Luwrain luwrain;
-    private SectionsTreeModelSource treeModelSource;
+    private TreeModelSource treeModelSource;
     private CachedTreeModel treeModel;
-    
+
     private TreeArea sectionsArea;
     private ChatArea chatArea;
-    
-    Vector<Account> accounts;
-    
-    public ChatArea getChatArea()
+
+    private final Vector<Account> accounts = new Vector<Account>();
+
+    ChatArea getChatArea()
 	{
 		return chatArea;
 	}
 
-	public void setSectionsArea(TreeArea sectionsArea)
+    void setSectionsArea(TreeArea sectionsArea)
 	{
 		this.sectionsArea=sectionsArea;
 	}
 
-	public void setChatArea(ChatArea chatArea)
+void setChatArea(ChatArea chatArea)
 	{
 		this.chatArea=chatArea;
 	}
@@ -41,23 +38,10 @@ class Base
     {
 	NullCheck.notNull(luwrain, "luwrain");
 	this.luwrain = luwrain;
-	treeModelSource = new SectionsTreeModelSource(this);
+	treeModelSource = new TreeModelSource(this, "Учётные записи");//FIXME:strings
 	treeModel = new CachedTreeModel(treeModelSource);
 	return true;
     }
-    
-
-     private void refreshSectionsTree()
-     {
-     }
-
-
-     boolean onTreeAction(EnvironmentEvent event)
-     {
-     	System.out.println(event.getType().toString()+event.getCode());
- 	return false;
-     }
-
 
      boolean gotoSectionsArea()
      {
@@ -75,7 +59,7 @@ class Base
     {
     	if (accounts==null)
     	{
-	    	accounts=new Vector<Account>();
+	    //	    	accounts=new Vector<Account>();
 	    	String[] dirs=luwrain.getRegistry().getDirectories(Settings.ACCOUNTS_PATH);
 	    	if (dirs==null)
 	    		return new Account[]{};
@@ -125,21 +109,4 @@ final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), ac
     {
 	return treeModel;
     }
-
-	public void init()
-	{
-		Object[] accounts=treeModelSource.getChildObjs(treeModelSource.getRoot());
-		for(Object o:accounts)
-		{
-			Account a=(Account)o;
-			a.doAutoConnect(new Runnable()
-			{
-				@Override public void run()
-				{
-					sectionsArea.refresh();
-				}
-			});
-		}
-		
-	}
 }

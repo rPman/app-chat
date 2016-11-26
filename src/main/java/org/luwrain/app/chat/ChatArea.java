@@ -18,7 +18,7 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     protected final EmbeddedSingleLineEdit edit;
     protected String enteringPrefix = "";
     protected String enteringText = "";
-	private Contact contact=null;
+    private Contact contact=null;
 
     ChatArea(ControlEnvironment environment)
     {
@@ -43,8 +43,10 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     {
 	NullCheck.notNull(prefix, "prefix");
 	NullCheck.notNull(text, "text");if (contact==null) return;
-	if (contact.getMessages()==null) return;
-	if (contact.getMessages().lastMessages()==null) return;
+	if (contact.getMessages()==null) 
+	    return;
+	if (contact.getMessages().lastMessages()==null) 
+return;
 	contact.getMessages().lastMessages().add(contact.getAccount().sendNewMessage(text,contact));
 	updateEditPos();
 	environment.onAreaNewContent(this);
@@ -54,16 +56,19 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 
     @Override public int getLineCount()
     {
-    	if (contact==null) return 1;
+    	if (contact==null) 
+	    return 1;
     	if (contact.getMessages()==null) return 1;
 	return 1+contact.getMessages().lastMessages().size();
     }
 
     @Override public String getLine(int index)
     {
-    	if (contact==null) return "";
+    	if (contact==null) 
+return "";
     	if (contact.getMessages()==null) return "";
-    	if (contact.getMessages().lastMessages()==null) return "";
+    	if (contact.getMessages().lastMessages()==null) 
+	    return "";
 	if (index < contact.getMessages().lastMessages().size())
 	    return contact.getMessages().lastMessages().get(index).getMessage();
 	if (index == contact.getMessages().lastMessages().size())

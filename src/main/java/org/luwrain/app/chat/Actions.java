@@ -18,41 +18,41 @@ class Actions
 	this.luwrain = luwrain;
     }
 
-     Action[] getTreeActions()
-     {
-	 return new Action[]{
-		     new Action("add-account", "Добавить новую учётную запись", new KeyboardEvent(KeyboardEvent.Special.INSERT)),
-		     new Action("select-item", "Выбрать контакт для общения", new KeyboardEvent(KeyboardEvent.Special.ENTER)),
-		     new Action("add-contact", "Добавить контакт", new KeyboardEvent(KeyboardEvent.Special.F6)),
-	 };
-     }
+    Action[] getTreeActions()
+    {
+	return new Action[]{
+	    new Action("add-account", "Добавить новую учётную запись", new KeyboardEvent(KeyboardEvent.Special.INSERT)),
+	    new Action("select-item", "Выбрать контакт для общения", new KeyboardEvent(KeyboardEvent.Special.ENTER)),
+	    new Action("add-contact", "Добавить контакт", new KeyboardEvent(KeyboardEvent.Special.F6)),
+	};
+    }
 
     boolean onAddAccount(TreeArea area)
- 	{
-    NullCheck.notNull(area, "area");
-    Log.debug("chat", "adding new account");
-    final String jabber = "Jabber";
-    final String telegram = "Telegram";
-    final Object res = Popups.fixedList(luwrain, "Выберите тип новой учётной записи:", new String[]{jabber, telegram});
-    if (res == null)
-    	return true;
-    if (res == jabber)
-    	addAccountJabber();
-    if (res == telegram)
-    	addAccountTelegram();
-    area.refresh();
+    {
+	NullCheck.notNull(area, "area");
+	Log.debug("chat", "adding new account");
+	final String jabber = "Jabber";
+	final String telegram = "Telegram";
+	final Object res = Popups.fixedList(luwrain, "Выберите тип новой учётной записи:", new String[]{jabber, telegram});
+	if (res == null)
+	    return true;
+	if (res == jabber)
+	    addAccountJabber();
+	if (res == telegram)
+	    addAccountTelegram();
+	area.refresh();
 	return true;
- 	}
+    }
 
- 	private boolean addAccountJabber()
- 	{
- 		return true;
- 	}
- 	
- 	public void onChekedContact(TreeArea area)
- 	{
- 		area.refresh();
- 	}
+    private boolean addAccountJabber()
+    {
+	return true;
+    }
+
+    public void onChekedContact(TreeArea area)
+    {
+	area.refresh();
+    }
 
     private boolean addAccountTelegram()
     {
@@ -83,28 +83,21 @@ class Actions
 	return true;
     }
 
-	public boolean onSelectItem(TreeArea treeArea,ChatArea chatArea)
-	{
-		
-		if (treeArea.selected() instanceof Contact)
+boolean onSelectItem(TreeArea treeArea,ChatArea chatArea)
+    {
+				if (treeArea.selected() instanceof Contact)
 		{
 			chatArea.selectContact((Contact)treeArea.selected());
 		} else
 		if (treeArea.selected() instanceof Account)
 		{		
-			((Account)treeArea.selected()).onConnect(new Runnable()
-			{
-				@Override public void run()
-				{
-					treeArea.refresh();
-				}
-			});
+		    ((Account)treeArea.selected()).onConnect(()->treeArea.refresh());
 		}
 		return false;
 	}
 
-	public boolean onAddContact(TreeArea treeArea,ChatArea chatArea)
-	{
+    boolean onAddContact(TreeArea treeArea,ChatArea chatArea)
+    {
 		Object obj=treeArea.selected();
 		Account account;
 		if (obj instanceof Account)

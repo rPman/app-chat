@@ -1,7 +1,8 @@
+
 package org.luwrain.app.chat;
 
-public interface UIEvent
+interface UIEvent
 {
-	void onNewMessage();
-	void onUnknownContactReciveMessage(String message);
+    void onNewMessage();
+    void onUnknownContactReciveMessage(String message);
 }
