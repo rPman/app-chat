@@ -13,11 +13,12 @@ class Base
     private Luwrain luwrain;
     private TreeModelSource treeModelSource;
     private CachedTreeModel treeModel;
+    private TelegramAccountListener telegramAccountListener;
 
     private TreeArea sectionsArea;
     private ChatArea chatArea;
 
-    private final Vector<Account> accounts = new Vector<Account>();
+    //    private final Vector<Account> accounts = new Vector<Account>();
 
     ChatArea getChatArea()
 	{
@@ -34,10 +35,12 @@ void setChatArea(ChatArea chatArea)
 		this.chatArea=chatArea;
 	}
 
-	boolean init(Luwrain luwrain)
+    boolean init(Luwrain luwrain, TelegramAccountListener telegramAccountListener)
     {
 	NullCheck.notNull(luwrain, "luwrain");
+	NullCheck.notNull(telegramAccountListener, "telegramAccountListener");
 	this.luwrain = luwrain;
+	this.telegramAccountListener = telegramAccountListener;
 	treeModelSource = new TreeModelSource(this, "Учётные записи");//FIXME:strings
 	treeModel = new CachedTreeModel(treeModelSource);
 	return true;
@@ -57,47 +60,27 @@ void setChatArea(ChatArea chatArea)
 
     Account[] loadAccounts()
     {
-    	if (accounts==null)
-    	{
-	    //	    	accounts=new Vector<Account>();
-	    	String[] dirs=luwrain.getRegistry().getDirectories(Settings.ACCOUNTS_PATH);
-	    	if (dirs==null)
-	    		return new Account[]{};
-	    	int id=0;
-	    	for (String str : dirs)
-	    	{
-	    		String accountPath = Registry.join(Settings.ACCOUNTS_PATH, str);
-			Settings.Base type=RegistryProxy.create(luwrain.getRegistry(), accountPath, Settings.Base.class);
-	    		switch(type.getType(""))
-	    		{
-	    			case "Telegram":
-    				{
-final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), accountPath );
-    					TelegramAccount telegram=new TelegramAccount(luwrain, sett,new UIEvent()
-						{
-							
-							@Override public void onNewMessage()
-							{
-								luwrain.onAreaNewContent(chatArea);								
-							}
-
-							@Override public void onUnknownContactReciveMessage(String message)
-							{
-								luwrain.message("Неизвестный контакт: "+message);
-								luwrain.onAreaNewContent(sectionsArea);
-								
-							}
-						});
-    					accounts.add(telegram);
-    					break;
-    				}
-	    			//case "Jabber": res.put("Jabber"+str,id++);break;
-	    			default:
-	    				break;
-	    		}
-	    	}
-    	}
-	return accounts.toArray(new TelegramAccount[accounts.size()]);
+	final LinkedList<Account> res = new LinkedList<Account>();
+	final Registry registry = luwrain.getRegistry();
+	registry.addDirectory(Settings.ACCOUNTS_PATH);
+	//	    	int id=0;
+	for (String str : registry.getDirectories(Settings.ACCOUNTS_PATH))
+	{
+	    String accountPath = Registry.join(Settings.ACCOUNTS_PATH, str);
+	    final Settings.Base type=RegistryProxy.create(luwrain.getRegistry(), accountPath, Settings.Base.class);
+	    switch(type.getType("").trim().toLowerCase())
+	    {
+	    case "Telegram":
+		{
+		    final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), accountPath );
+		    res.add(new TelegramAccount(luwrain, sett, telegramAccountListener));
+		}
+		break;
+	    default:
+		break;
+	    }
+	}
+	return res.toArray(new TelegramAccount[res.size()]);
     }
 
     public TreeArea getSectionsArea()

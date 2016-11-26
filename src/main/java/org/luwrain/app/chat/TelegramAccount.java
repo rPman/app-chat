@@ -17,15 +17,17 @@ public class TelegramAccount implements Account
 	private final Vector<Contact> contacts = new Vector<Contact>();
 	// если любой контакт null, то это мы сами
 	private Contact me=null;
-	UIEvent uievent;
+    private TelegramAccountListener listener;
 
-    TelegramAccount(Luwrain luwrain, Settings.Telegram sett,UIEvent uievent)
+    TelegramAccount(Luwrain luwrain, Settings.Telegram sett, 
+TelegramAccountListener listener)
     {
 	NullCheck.notNull(luwrain, "luwrain");
 	NullCheck.notNull(sett, "sett");
+	NullCheck.notNull(listener, "listener");
 	this.luwrain=luwrain;
 	this.sett = sett;
-	this.uievent=uievent;
+	this.listener = listener;
     }
 
     @Override public void onConnect(Runnable finish)
@@ -67,7 +69,7 @@ public class TelegramAccount implements Account
 		@Override public void onNewMessage(Message message,Contact recipient)
 		{
 			recipient.getMessages().lastMessages().add(message);
-			uievent.onNewMessage();
+listener.onNewMessage();
 		}
 		@Override public void onBeginAddingContact()
 		{
@@ -123,13 +125,13 @@ public void reciveNewMessage(String message,int date,int userId)
 			{
 				TelegramMessageImpl msg=new TelegramMessageImpl(message,new Date(),contact);
 				contact.getMessages().lastMessages().add(msg);
-				uievent.onNewMessage();
+listener.onNewMessage();
 				return;
 			}
 		}
 		//
 //		addNewContact(userId);
-		uievent.onUnknownContactReciveMessage(message);
+listener.onUnknownContactReciveMessage(message);
 //		System.out.println("пришло сообщение от неизвестного userId");
 		
 	}

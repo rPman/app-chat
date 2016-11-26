@@ -8,7 +8,7 @@ import org.luwrain.core.events.*;
 import org.luwrain.popups.Popups;
 import org.luwrain.controls.*;
 
-class ChatApp implements Application, MonoApp
+class ChatApp implements Application, MonoApp, TelegramAccountListener
 {
     private Luwrain luwrain;
     private final Base base = new Base();
@@ -25,7 +25,7 @@ class ChatApp implements Application, MonoApp
 	    return false;
 	strings = (Strings)o;
 	this.luwrain = luwrain;
-	if (!base.init(luwrain))
+	if (!base.init(luwrain, this))
 	    return false;
 	actions = new Actions(luwrain);
 	createArea();
@@ -127,6 +127,17 @@ class ChatApp implements Application, MonoApp
 	return false;
     }
 
+    @Override public void onNewMessage()
+    {
+	luwrain.onAreaNewContent(base.getChatArea());
+    }
+
+    @Override public void onUnknownContactReciveMessage(String message)
+    {
+	luwrain.message("Неизвестный контакт: "+message);
+	luwrain.onAreaNewContent(base.getSectionsArea());
+    }
+
     /*
 private void init()
 	{
@@ -144,7 +155,6 @@ private void init()
 		}
 		}
     */
-
 
     @Override public AreaLayout getAreasToShow()
     {
