@@ -127,7 +127,7 @@ public class TelegramImpl implements Messenger
 		    if (updates instanceof TLUpdateShortMessage) 
 			{
 				TLUpdateShortMessage updatesh=(TLUpdateShortMessage)updates;
-				tAccount.reciveNewMessage(updatesh.getMessage(),updatesh.getDate(),updatesh.getUserId()); 
+				tAccount.receiveNewMessage(updatesh.getMessage(),updatesh.getDate(),updatesh.getUserId()); 
 			}
 		}
 	    });
@@ -150,7 +150,7 @@ public class TelegramImpl implements Messenger
 	return true;
     }
 
-    @Override public void go()
+    public void run()
     {
 	whatdo = Whatdo.none;
 	// getAuthKey
@@ -177,7 +177,7 @@ public class TelegramImpl implements Messenger
 //		api.switchToDc(2); else
 //		api.switchToDc(1);
 	    whatdo=Whatdo.signin;
-	    setState(Messenger.State.registred);
+	    setState(Messenger.State.REGISTERED);
 	}
 
 		//api.switchToDc(1);
@@ -206,7 +206,7 @@ public class TelegramImpl implements Messenger
 		if (checked.isPhoneRegistered()==false)
 		{
 			whatdo = Whatdo.signup;
-			setState(Messenger.State.unregitred);
+			setState(Messenger.State.UNREGISTERED);
 		}
         } 
 catch (RpcException e) 
@@ -219,13 +219,13 @@ catch (RpcException e)
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("NETWORK_MIGRATE_".length()));
                     whatdo = Whatdo.signup;
-                    setState(Messenger.State.unregitred);
+                    setState(Messenger.State.UNREGISTERED);
                 } else 
 if (e.getErrorTag().startsWith("PHONE_MIGRATE_")) 
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("PHONE_MIGRATE_".length()));
                     whatdo=Whatdo.signin;
-                    setState(Messenger.State.registred);
+                    setState(Messenger.State.REGISTERED);
                 } else 
 if (e.getErrorTag().startsWith("USER_MIGRATE_")) 
 {

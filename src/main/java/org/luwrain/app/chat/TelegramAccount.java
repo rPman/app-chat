@@ -13,11 +13,13 @@ public class TelegramAccount implements Account
 {
     private final Luwrain luwrain;
     private final Settings.Telegram sett;
-    private Messenger messenger;
+    private TelegramAccountListener listener;
+
+    private TelegramImpl messenger;
 	private final Vector<Contact> contacts = new Vector<Contact>();
+
 	// если любой контакт null, то это мы сами
 	private Contact me=null;
-    private TelegramAccountListener listener;
 
     TelegramAccount(Luwrain luwrain, Settings.Telegram sett, 
 TelegramAccountListener listener)
@@ -53,11 +55,10 @@ TelegramAccountListener listener)
 		{
 		    NullCheck.notNull(message, "message");
 		    Log.error("chat-telegram", message);
-		    //		    messenger.finish();				
 		}
 		@Override public void onAuthFinish()
 		{
-		    System.out.println("onAuthFinish");
+		    Log.debug("chat-telegram",  "onAuthFinish");
 		    messenger.checkContacts();
 		    finish.run();
 		}
@@ -77,7 +78,7 @@ listener.onNewMessage();
 		}
 	    },this);
 	Log.debug("chat", "Telegram messenger for " + sett.getPhone("") + " prepared");
-	messenger.go();
+	messenger.run();
     }
 
     @Override public Contact[] getContacts()
@@ -85,37 +86,27 @@ listener.onNewMessage();
 	return contacts.toArray(new Contact[contacts.size()]);
     }
 
-    Settings.Telegram getSettings()
-    {
-	return sett;
-    }
 
-    @Override public String toString()
-    {
-	return (messenger==null?"":messenger.getState().name())+":Telegram:"+sett.getPhone("");
-    }
-
-	@Override public void doAutoConnect(Runnable finish)
+    @Override public void doAutoConnect(Runnable finish)
 	{	
-		final TelegramAccount that=this;
+	    //		final TelegramAccount that=this;
 		Thread thread=new Thread(new Runnable(){
 			@Override public void run()
 			{
-				
-				Boolean authconnect=sett.getAutoConnect(true);
+			    Boolean authconnect=sett.getAutoConnect(true);
 				//TODO: null почему не null, когда в реестре значение не установлено
 				if (authconnect==null) 
 authconnect=true;
 				if (authconnect==true)
 				{
-					that.onConnect(finish);
+				    onConnect(finish);
 				}				
 			}});
 		thread.start();
 
 	}
 
-public void reciveNewMessage(String message,int date,int userId)
+public void receiveNewMessage(String message,int date,int userId)
 	{
 		//TelegramMessageImpl message=new TelegramMessageImpl();
 		for(Contact c:contacts)
@@ -184,4 +175,14 @@ listener.onUnknownContactReciveMessage(message);
 			}
 				});
 			}
+
+    Settings.Telegram getSettings()
+    {
+	return sett;
+    }
+
+    @Override public String toString()
+    {
+	return (messenger==null?"":messenger.getState().name())+":Telegram:"+sett.getPhone("");
+    }
 }

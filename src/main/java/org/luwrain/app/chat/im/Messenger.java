@@ -7,14 +7,17 @@ public interface Messenger
 {
 	public enum State {
 	    	/**  требуется регистрация, будет прислан смс */
-	    	unregitred,
+	    	UNREGISTERED,
+
 	    	/**  требуется подтверждение смс */
-	    	registred,
+	    	REGISTERED,
+
 	    	/**  авторизован, смс не потребуется*/
 	    	authorized
+
 	    	/** еще не запущена */,
 	    	none}
-    void go();
+    //    void go();
     //    void twoPass(String code);
     void checkContacts();
     void finish();

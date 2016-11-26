@@ -28,6 +28,7 @@ class Base
 
     Account[] loadAccounts()
     {
+	Log.debug("chat", "loading accounts");
 	final LinkedList<Account> res = new LinkedList<Account>();
 	final Registry registry = luwrain.getRegistry();
 	registry.addDirectory(Settings.ACCOUNTS_PATH);
@@ -37,7 +38,7 @@ class Base
 	    final Settings.Base type=RegistryProxy.create(luwrain.getRegistry(), accountPath, Settings.Base.class);
 	    switch(type.getType("").trim().toLowerCase())
 	    {
-	    case "Telegram":
+	    case "telegram":
 		{
 		    final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), accountPath );
 		    res.add(new TelegramAccount(luwrain, sett, telegramAccountListener));
@@ -47,6 +48,7 @@ class Base
 		break;
 	    }
 	}
+	Log.debug("chat", "loaded " + res.size() + " accounts");
 	return res.toArray(new TelegramAccount[res.size()]);
     }
 

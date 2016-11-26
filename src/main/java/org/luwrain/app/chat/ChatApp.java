@@ -7,6 +7,7 @@ import org.luwrain.core.*;
 import org.luwrain.core.events.*;
 import org.luwrain.popups.Popups;
 import org.luwrain.controls.*;
+import org.luwrain.app.chat.im.*;
 
 class ChatApp implements Application, MonoApp, TelegramAccountListener
 {
@@ -137,23 +138,11 @@ chatArea.setListener((text)->chatArea.addLine("entered>", text));
 	luwrain.onAreaNewContent(treeArea);
     }
 
-    /*
-private void init()
-	{
-		Object[] accounts=treeModelSource.getChildObjs(treeModelSource.getRoot());
-		for(Object o:accounts)
-		{
-			Account a=(Account)o;
-			a.doAutoConnect(new Runnable()
-			{
-				@Override public void run()
-				{
-					sectionsArea.refresh();
-				}
-			});
-		}
-		}
-    */
+    private void autoConnect()
+    {
+	for(Account a: base.loadAccounts())
+	    a.doAutoConnect(()->treeArea.refresh());
+    }
 
     private boolean gotoTreeArea()
     {
