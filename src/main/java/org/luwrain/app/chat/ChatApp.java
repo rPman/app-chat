@@ -16,6 +16,7 @@ class ChatApp implements Application, MonoApp, TelegramAccountListener
     private Strings strings;
 
     private TreeArea treeArea;
+    private ChatArea chatArea;
 
     @Override public boolean onLaunch(Luwrain luwrain)
     {
@@ -49,7 +50,7 @@ class ChatApp implements Application, MonoApp, TelegramAccountListener
 			switch (event.getSpecial())
 			{
 			case TAB:
-			    return base.gotoSecondArea();
+			    return gotoChatArea();
 			}
 		    return super.onKeyboardEvent(event);
 		}
@@ -77,9 +78,7 @@ class ChatApp implements Application, MonoApp, TelegramAccountListener
 		}
 	};
 
-    base.setSectionsArea(treeArea);
-
-    base.setChatArea(new ChatArea(new DefaultControlEnvironment(luwrain)) {
+chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
 
 	    @Override public boolean onKeyboardEvent(KeyboardEvent event)
 	    {
@@ -88,7 +87,7 @@ class ChatApp implements Application, MonoApp, TelegramAccountListener
 		    switch(event.getSpecial())
 		{
 		case TAB:
-		    return base.gotoSectionsArea();
+		    return gotoTreeArea();
 		}
 		return super.onKeyboardEvent(event);
 	    }
@@ -107,10 +106,10 @@ class ChatApp implements Application, MonoApp, TelegramAccountListener
 		    return super.onEnvironmentEvent(event);
 		}
 	    }
-	});
+	};
 
-		base.getChatArea().setEnteringPrefix("proba>");
-		base.getChatArea().setListener((text)->base.getChatArea().addLine("entered>", text));
+chatArea.setEnteringPrefix("proba>");
+chatArea.setListener((text)->chatArea.addLine("entered>", text));
 
 		//		base.init();
     }
@@ -121,21 +120,21 @@ class ChatApp implements Application, MonoApp, TelegramAccountListener
 	if (ActionEvent.isAction(event, "add-account"))
 	    return actions.onAddAccount(treeArea);
 	if (ActionEvent.isAction(event, "select-item"))
-	    return actions.onSelectItem(treeArea,base.getChatArea());
+	    return actions.onSelectItem(treeArea, chatArea);
 	if (ActionEvent.isAction(event, "add-contact"))
-	    return actions.onAddContact(treeArea,base.getChatArea());
+	    return actions.onAddContact(treeArea, chatArea);
 	return false;
     }
 
     @Override public void onNewMessage()
     {
-	luwrain.onAreaNewContent(base.getChatArea());
+	luwrain.onAreaNewContent(chatArea);
     }
 
     @Override public void onUnknownContactReciveMessage(String message)
     {
 	luwrain.message("Неизвестный контакт: "+message);
-	luwrain.onAreaNewContent(base.getSectionsArea());
+	luwrain.onAreaNewContent(treeArea);
     }
 
     /*
@@ -156,9 +155,21 @@ private void init()
 		}
     */
 
+    private boolean gotoTreeArea()
+    {
+	luwrain.setActiveArea(treeArea);
+	return true;
+    }
+
+    private boolean gotoChatArea()
+    {
+	luwrain.setActiveArea(chatArea);
+	return true;
+    }
+
     @Override public AreaLayout getAreasToShow()
     {
-	return new AreaLayout(AreaLayout.LEFT_RIGHT, base.getSectionsArea(), base.getChatArea());
+	return new AreaLayout(AreaLayout.LEFT_RIGHT, treeArea, chatArea);
     }
 
     @Override public String getAppName()
