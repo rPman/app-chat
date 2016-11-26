@@ -77,7 +77,7 @@ public class TelegramImpl implements Messenger
  
     private Whatdo whatdo;
     
-    private Messenger.State state=Messenger.State.none;
+    private State state = State.none;
     
     private static Object autorun=autoRun(); 
     private static Object autoRun()
@@ -177,7 +177,7 @@ public class TelegramImpl implements Messenger
 //		api.switchToDc(2); else
 //		api.switchToDc(1);
 	    whatdo=Whatdo.signin;
-	    setState(Messenger.State.REGISTERED);
+	    setState(State.REGISTERED);
 	}
 
 		//api.switchToDc(1);
@@ -206,7 +206,7 @@ public class TelegramImpl implements Messenger
 		if (checked.isPhoneRegistered()==false)
 		{
 			whatdo = Whatdo.signup;
-			setState(Messenger.State.UNREGISTERED);
+			setState(State.UNREGISTERED);
 		}
         } 
 catch (RpcException e) 
@@ -219,13 +219,13 @@ catch (RpcException e)
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("NETWORK_MIGRATE_".length()));
                     whatdo = Whatdo.signup;
-                    setState(Messenger.State.UNREGISTERED);
+                    setState(State.UNREGISTERED);
                 } else 
 if (e.getErrorTag().startsWith("PHONE_MIGRATE_")) 
 {
                     destDC = Integer.parseInt(e.getErrorTag().substring("PHONE_MIGRATE_".length()));
                     whatdo=Whatdo.signin;
-                    setState(Messenger.State.REGISTERED);
+                    setState(State.REGISTERED);
                 } else 
 if (e.getErrorTag().startsWith("USER_MIGRATE_")) 
 {
@@ -352,7 +352,7 @@ events.onError(whatdo.name()+" "+e.getMessage());
 	        		//TODO ������ ��� ������
 	        		break;
 	        }
-		 setState(Messenger.State.authorized);
+		 setState(State.authorized);
 		//������� ��� � hash ����������� � ����
 		 try(FileWriter writer = new FileWriter("Telegram."+config.phone+".txt"))
 	        {
@@ -502,7 +502,7 @@ catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		} 
-		setState(Messenger.State.authorized);
+		setState(State.authorized);
 		System.out.println("isTemporalSession " + auth.isTemporalSession());
 	}
 	
