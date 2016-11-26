@@ -42,41 +42,45 @@ TelegramAccountListener listener)
 	config.phone = sett.getPhone("");
 	messenger =new TelegramImpl(config,
 				    new Events(){
+@Override public void receiveNewMessage(String message,int date,int userId)
+					{
+					    receiveNewMessageImpl(message, date, userId);
+					}
 					@Override public void onWarning(String message)
-		{
-		    NullCheck.notNull(message, "message");
-		    Log.warning("chat-telegram", message);
-		}
-		@Override public void onNewContact(Contact contact)
-		{
-		    contacts.add(contact);
-		}
-		@Override public void onError(String message)
-		{
-		    NullCheck.notNull(message, "message");
-		    Log.error("chat-telegram", message);
-		}
-		@Override public void onAuthFinish()
-		{
-		    Log.debug("chat-telegram",  "onAuthFinish");
-		    messenger.checkContacts();
-		    luwrain.runInMainThread(onFinished);
-		}
-		@Override public String askTwoPassAuthCode(String message)
-		{
-		    NullCheck.notEmpty(message, "message");
-		    return Popups.simple(luwrain, "Подключение к учетной записи", message, "");
-		}
-		@Override public void onNewMessage(Message message,Contact recipient)
-		{
-			recipient.getMessages().lastMessages().add(message);
-listener.onNewMessage();
-		}
-		@Override public void onBeginAddingContact()
-		{
-			contacts.clear();			
-		}
-	    },this);
+					{
+					    NullCheck.notNull(message, "message");
+					    Log.warning("chat-telegram", message);
+					}
+					@Override public void onNewContact(Contact contact)
+					{
+					    contacts.add(contact);
+					}
+					@Override public void onError(String message)
+					{
+					    NullCheck.notNull(message, "message");
+					    Log.error("chat-telegram", message);
+					}
+					@Override public void onAuthFinish()
+					{
+					    Log.debug("chat-telegram",  "onAuthFinish");
+					    messenger.checkContacts();
+					    luwrain.runInMainThread(onFinished);
+					}
+					@Override public String askTwoPassAuthCode(String message)
+					{
+					    NullCheck.notEmpty(message, "message");
+					    return Popups.simple(luwrain, "Подключение к учетной записи", message, "");
+					}
+					@Override public void onNewMessage(Message message,Contact recipient)
+					{
+					    recipient.getMessages().lastMessages().add(message);
+					    listener.onNewMessage();
+					}
+					@Override public void onBeginAddingContact()
+					{
+					    contacts.clear();			
+					}
+				    },this);
 	Log.debug("chat", "Telegram messenger for " + sett.getPhone("") + " prepared");
 	messenger.run();
     }
@@ -94,7 +98,7 @@ listener.onNewMessage();
 	    new Thread(()->connect(onFinished)).start();
 	}
 
-public void receiveNewMessage(String message,int date,int userId)
+private void receiveNewMessageImpl(String message,int date,int userId)
 	{
 		//TelegramMessageImpl message=new TelegramMessageImpl();
 		for(Contact c:contacts)

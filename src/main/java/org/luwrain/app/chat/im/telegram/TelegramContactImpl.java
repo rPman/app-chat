@@ -27,12 +27,14 @@ public class TelegramContactImpl implements Contact
 	{
 		return account;
 	}
+
 	void init(long accessHash,int userId,MessageList messages)
 	{
 		this.accessHash=accessHash;
 		this.userId=userId;
 		this.messages=messages;
 	}
+
 	void setUserInfo(String firstName,String lastName,String userName,String phone)
 	{
 		this.firstName=firstName;
@@ -45,6 +47,7 @@ public class TelegramContactImpl implements Contact
 	{
 		return phone+": "+firstName;
 	}
+
 	@Override public MessageList getMessages()
 	{
 		return messages;

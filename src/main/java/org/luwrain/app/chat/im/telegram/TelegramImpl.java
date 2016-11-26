@@ -59,6 +59,8 @@ import org.luwrain.app.chat.TelegramAccount;
 
 public class TelegramImpl
 {
+    private enum Task {SIGN_UP, SIGN_IN, MIGRATE, NONE};
+
     /** Timeout milliseconds */
     private final int TIMEOUT = 15000;
 
@@ -78,12 +80,9 @@ public class TelegramImpl
 
     TLCheckedPhone checked=null;
 
-    enum Task {SIGN_UP, SIGN_IN, MIGRATE, NONE};
-
     private Task task;
-    
     private State state = State.none;
-    
+
     private static Object autorun=autoRun(); 
     private static Object autoRun()
     {
@@ -101,13 +100,13 @@ public class TelegramImpl
 	    });
 	return null;
     }
-    
-    public TelegramImpl(Config config, Events events, TelegramAccount tAccount) 
+
+    public TelegramImpl(Config config, Events events, TelegramAccount tAccount)
     {
 	NullCheck.notNull(config, "config");
 	NullCheck.notNull(events, "events");
 	this.config = config;
-	this.tAccount=tAccount;
+	//	this.tAccount=tAccount;
 	this.events = events;
     }
 
@@ -132,7 +131,7 @@ public class TelegramImpl
 		    if (updates instanceof TLUpdateShortMessage) 
 			{
 				TLUpdateShortMessage updatesh=(TLUpdateShortMessage)updates;
-				tAccount.receiveNewMessage(updatesh.getMessage(),updatesh.getDate(),updatesh.getUserId()); 
+				events.receiveNewMessage(updatesh.getMessage(),updatesh.getDate(),updatesh.getUserId()); 
 			}
 		}
 	    });
