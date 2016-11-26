@@ -51,7 +51,7 @@ import org.luwrain.app.chat.TelegramAccount;
 import org.luwrain.core.*;
 import org.luwrain.app.chat.im.*;
 
-public class TelegramImpl implements Messenger
+public class TelegramImpl
 {
     /** Timeout milliseconds */
     final int TIMEOUT = 15000;
@@ -575,7 +575,7 @@ catch (Exception e) {
 		} 
 	}
 
-	@Override public void finish()
+    public void finish()
 	{
 		api.close();
 	}

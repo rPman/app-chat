@@ -145,11 +145,6 @@ listener.onUnknownContactReciveMessage(message);
 		return message;
 	}
 
-	@Override public Messenger getMessenger()
-	{
-		return messenger;
-	}
-
 	@Override public void askCreateContact(Runnable finished)
 	{
 		String phone = Popups.simple(luwrain, "Добавление нового контакта", "Введите номер мобильного телефона:", "");
