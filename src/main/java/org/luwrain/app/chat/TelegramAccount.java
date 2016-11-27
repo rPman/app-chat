@@ -128,31 +128,14 @@ listener.onUnknownContactReciveMessage(message);
 		return message;
 	}
 
-	@Override public void askCreateContact(Runnable finished)
-	{
-		String phone = Popups.simple(luwrain, "Добавление нового контакта", "Введите номер мобильного телефона:", "");
-		phone=phone.trim();
-		if(phone==null || phone.isEmpty())
-		    return;
-		String firstname = Popups.simple(luwrain, "Добавление нового контакта", "Введите имя ","");
-		firstname=firstname.trim();
-		String lastname="";
-		if (!(firstname==null || firstname.isEmpty()))
-		{
-		    lastname = Popups.simple(luwrain, "Добавление нового контакта", "Введите второе имя ","");
-		    lastname=lastname.trim();
-		}
-		TelegramImpl timp=(TelegramImpl)messenger;
-		timp.addNewContact(phone,firstname,lastname,new Runnable()
-		{
-
-			@Override public void run()
-			{
-				messenger.checkContacts();		
-				finished.run();
-			}
-				});
-			}
+    @Override public void addContact(String phone, String firstName,
+				     String lastName, Runnable onFinished)
+    {
+	messenger.addNewContact(phone, firstName, lastName, ()->luwrain.runInMainThread(()->{
+		messenger.checkContacts();		
+		onFinished.run();
+		}));
+    }
 
     @Override public String toString()
     {

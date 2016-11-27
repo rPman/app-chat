@@ -160,13 +160,14 @@ return "";
 	{
 		ChatArea that=this;
 //		if (contact==null) return;
-		account.askCreateContact(new Runnable()
+/*
+account.askCreateContact(new Runnable()
 		{
 			@Override public void run()
 			{
 				environment.onAreaNewContent(that);				
 			}
 		});
+*/
 	}
-
 }

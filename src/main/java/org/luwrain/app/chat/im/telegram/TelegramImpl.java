@@ -540,10 +540,9 @@ catch (Exception e)
 ////			events.onError(e.getMessage());
 ////			return;
 ////		}
-		
-		
-		TLRequestContactsImportContacts ic=new TLRequestContactsImportContacts();
-		TLInputPhoneContact pc=new TLInputPhoneContact();
+
+		final TLRequestContactsImportContacts ic = new TLRequestContactsImportContacts();
+		final TLInputPhoneContact pc=new TLInputPhoneContact();
 		//pc.setClientId(userId);
 		pc.setFirstName(firstname);
 		pc.setLastName(lastname);
@@ -552,18 +551,16 @@ catch (Exception e)
 		vpc.add(pc);
 		ic.setContacts(vpc);
 		ic.setReplace(false);
+		Log.debug("chat-telegram", "trying TLRequestContactsImportContacts");
 		api.doRpcCallNonAuth(ic,TIMEOUT,new RpcCallback<TLImportedContacts>()
 		{
-
 			@Override public void onError(int arg0,String arg1)
 			{
-				System.out.println("Add contact error: "+arg1);				
+			    Log.error("chat-telegram", "Add contact error: "+arg1);				
 			}
-
 			@Override public void onResult(TLImportedContacts arg0)
 			{
-				System.out.println("Add contact success: "+arg0.getUsers().size());				
-
+			    Log.debug("chat-telegram", "Add contact success: "+arg0.getUsers().size());				
 				finished.run();
 			}});
 	}

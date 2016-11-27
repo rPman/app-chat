@@ -7,5 +7,5 @@ public interface Account
     void open(Runnable onFinished);
     void activate(Runnable onFinished);
     Message sendNewMessage(String text, Contact contact);
-    void askCreateContact(Runnable finished);
+    void addContact(String phone, String firstName, String lastName, Runnable finished);
 }

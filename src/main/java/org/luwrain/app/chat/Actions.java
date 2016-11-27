@@ -100,24 +100,26 @@ class Actions
 
     boolean onAddContact(TreeArea treeArea,ChatArea chatArea)
     {
-		Object obj=treeArea.selected();
-		Account account;
-		if (obj instanceof Account)
-			account=(Account)obj;
-		else
-			if (obj instanceof Contact)
-				account=((Contact)obj).getAccount();
-			else
-				return false;
-//		if (contact==null) return;
-		account.askCreateContact(new Runnable()
-		{
-			@Override public void run()
-			{
-				treeArea.refresh();
-				luwrain.onAreaNewContent(treeArea);				
-			}
-		});
+	final Object obj=treeArea.selected();
+	if (obj == null)
+	    return false;
+	final Account account;
+	if (obj instanceof Account)
+	    account = (Account)obj; else
+	    if (obj instanceof Contact)
+		account = ((Contact)obj).getAccount(); else
 		return false;
-	}
+		final String phone = Popups.simple(luwrain, "Добавление контакта", "Введите номер мобильного телефона:", "");
+		if (phone == null || phone.trim().isEmpty())
+		    return true;
+
+		final String firstName = Popups.simple(luwrain, "Добавление контакта", "Введите имя:","");
+		if (firstName == null || firstName.trim().isEmpty())
+		    return true;
+		    final String lastName = Popups.simple(luwrain, "Добавление контакта", "Введите второе имя:","");
+		    if (lastName == null || lastName.trim().isEmpty())
+			return true;
+		    account.addContact(phone, firstName, lastName, ()->treeArea.refresh());
+	return true;
+    }
 }
