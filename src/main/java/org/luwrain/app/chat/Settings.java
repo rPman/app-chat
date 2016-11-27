@@ -3,7 +3,7 @@ package org.luwrain.app.chat;
 
 import org.luwrain.core.*;
 
-interface Settings
+public interface Settings
 {
     static final String ACCOUNTS_PATH = "/org/luwrain/app/chat/accounts";
 
@@ -12,7 +12,7 @@ interface Settings
 	String getType(String def);
     }
 
-    interface Telegram
+    public interface Telegram
     {
 	void setType(String val);
 	String getFirstName(String def);

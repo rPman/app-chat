@@ -15,7 +15,7 @@ public class TelegramAccount implements Account
     private final Settings.Telegram sett;
     private TelegramAccountListener listener;
 
-    private TelegramImpl messenger;
+    private final TelegramImpl messenger;
 	private final Vector<Contact> contacts = new Vector<Contact>();
 
 	// если любой контакт null, то это мы сами
@@ -30,12 +30,6 @@ TelegramAccountListener listener)
 	this.luwrain=luwrain;
 	this.sett = sett;
 	this.listener = listener;
-    }
-
-    @Override public void connect(Runnable onFinished)
-    {
-	if (messenger  != null)
-	    return;
 	final Config config = new Config();
 	config.firstName = sett.getFirstName("");
 	config.lastName = sett.getLastName("");
@@ -60,12 +54,6 @@ TelegramAccountListener listener)
 					    NullCheck.notNull(message, "message");
 					    Log.error("chat-telegram", message);
 					}
-					@Override public void onAuthFinish()
-					{
-					    Log.debug("chat-telegram",  "onAuthFinish");
-					    messenger.checkContacts();
-					    luwrain.runInMainThread(onFinished);
-					}
 					@Override public String askTwoPassAuthCode(String message)
 					{
 					    NullCheck.notEmpty(message, "message");
@@ -80,9 +68,21 @@ TelegramAccountListener listener)
 					{
 					    contacts.clear();			
 					}
-				    },this);
-	Log.debug("chat", "Telegram messenger for " + sett.getPhone("") + " prepared");
-	messenger.run();
+				    },this, sett);
+    }
+
+    @Override public void open(Runnable onFinished)
+	{	
+	    NullCheck.notNull(onFinished, "onFinished");
+	    new Thread(()->{
+		    messenger.open();
+		    luwrain.runInMainThread(onFinished);
+}).start();
+	}
+
+    @Override public void connect(Runnable onFinished)
+    {
+	//	messenger.connect();
     }
 
     @Override public Contact[] getContacts()
@@ -90,13 +90,6 @@ TelegramAccountListener listener)
 	return contacts.toArray(new Contact[contacts.size()]);
     }
 
-    @Override public void autoConnect(Runnable onFinished)
-	{	
-	    NullCheck.notNull(onFinished, "onFinished");
-	    if (!sett.getAutoConnect(true))
-		return;
-	    new Thread(()->connect(onFinished)).start();
-	}
 
 private void receiveNewMessageImpl(String message,int date,int userId)
 	{
@@ -165,6 +158,6 @@ listener.onUnknownContactReciveMessage(message);
 
     @Override public String toString()
     {
-	return (messenger==null?"":messenger.getState().name())+":Telegram:"+sett.getPhone("");
+	return messenger.getState() + Base.getPhoneDesignation(sett.getPhone(""));
     }
 }

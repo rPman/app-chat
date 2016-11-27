@@ -14,6 +14,7 @@ class Base
     private TreeModelSource treeModelSource;
     private CachedTreeModel treeModel;
     private TelegramAccountListener telegramAccountListener;
+    private Account[] accounts;
 
     boolean init(Luwrain luwrain, TelegramAccountListener telegramAccountListener)
     {
@@ -21,12 +22,18 @@ class Base
 	NullCheck.notNull(telegramAccountListener, "telegramAccountListener");
 	this.luwrain = luwrain;
 	this.telegramAccountListener = telegramAccountListener;
+	this.accounts = loadAccounts();
 	treeModelSource = new TreeModelSource(this, "Учётные записи");//FIXME:strings
 	treeModel = new CachedTreeModel(treeModelSource);
 	return true;
     }
 
-    Account[] loadAccounts()
+    Account[] getAccounts()
+    {
+	return accounts;
+    }
+
+    private Account[] loadAccounts()
     {
 	Log.debug("chat", "loading accounts");
 	final LinkedList<Account> res = new LinkedList<Account>();
@@ -55,5 +62,12 @@ class Base
     TreeArea.Model getTreeModel()
     {
 	return treeModel;
+    }
+
+    static String getPhoneDesignation(String str)
+    {
+	if (str.length() < 5)
+	    return str;
+	return str.substring(str.length() - 4);
     }
 }

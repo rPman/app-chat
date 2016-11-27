@@ -56,6 +56,7 @@ import org.telegram.tl.TLBytes;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 import org.luwrain.app.chat.TelegramAccount;
+import org.luwrain.app.chat.Settings;
 
 public class TelegramImpl
 {
@@ -71,12 +72,13 @@ public class TelegramImpl
     final Integer APIID = 97022;
 
     private final Config config;
+    private final Settings.Telegram sett;
     private final Events events;
     private TelegramApi api;
     private TLAuthorization auth;
     TLConfig tlconfig;
     TelegramAccount tAccount;
-    private MemoryApiState memstate;
+    private final MemoryApiState memstate;
 
     TLCheckedPhone checked=null;
 
@@ -101,18 +103,21 @@ public class TelegramImpl
 	return null;
     }
 
-    public TelegramImpl(Config config, Events events, TelegramAccount tAccount)
+    public TelegramImpl(Config config, Events events,
+TelegramAccount tAccount, Settings.Telegram sett)
     {
 	NullCheck.notNull(config, "config");
 	NullCheck.notNull(events, "events");
+	NullCheck.notNull(sett, "sett");
 	this.config = config;
 	//	this.tAccount=tAccount;
 	this.events = events;
+	this.sett = sett;
+    this.memstate = new MemoryApiState("Telegram."+config.phone+".raw");
     }
 
     private boolean init()
     {
-    memstate = new MemoryApiState("Telegram."+config.phone+".raw");
 	api = new TelegramApi(memstate, new AppInfo(APIID, "console", "1.0", "1.0", "en"), new ApiCallback() {
 		@Override public void onAuthCancelled(TelegramApi api) 
 		{
@@ -137,14 +142,12 @@ public class TelegramImpl
 	    });
 	Log.debug("chat-telegram", "performing TLRequestHelpGetConfig()");
 	try {
-	    //Problem is here!!
 	    tlconfig = api.doRpcCallNonAuth(new TLRequestHelpGetConfig(),TIMEOUT,2);
 	    Log.debug("chat-telegram", "TLRequestHelpGetConfig() done");
-	} catch (Exception e) 
+	}
+catch (Exception e) 
 	{
-	    Log.error("chat-telegram", e.getClass().getName() + ":" + e.getMessage());
-	    e.printStackTrace();
-	    events.onError(e.getClass() + ":" + e.getMessage());
+	    onError(e);
 	    return false;
 	}
 	memstate.updateSettings(tlconfig);
@@ -154,7 +157,7 @@ public class TelegramImpl
 	return true;
     }
 
-    public void run()
+    public void open()
     {
 	task = Task.NONE;
 	// getAuthKey
@@ -166,27 +169,8 @@ public class TelegramImpl
 	    return;
 	    }
 	Log.debug("chat-telegram", "init completed");
-
-	String phoneHash = null;
-	String phoneSms = null;
-	try(FileReader reader = new FileReader("Telegram."+config.phone+".txt")) {
-		final BufferedReader in = new BufferedReader(reader);
-		phoneSms = in.readLine();
-		phoneHash = in.readLine();
-	    }
-	catch(IOException e)
-	{
-	    Log.debug("chat-telegram", e.getClass().getName() + ":" + e.getMessage());
-//	    if (tlconfig.getThisDc() == 1)
-//		api.switchToDc(2); else
-//		api.switchToDc(1);
-	    task = Task.SIGN_IN;
-	    setState(State.REGISTERED);
-	}
-
 		//api.switchToDc(1);
 	Log.debug("chat-telegram", "tlconfig.getThisDc " + tlconfig.getThisDc());
-
 		// �������� ���������� DC
 //		TLRequestHelpGetNearestDc rndc = new TLRequestHelpGetNearestDc();
 //		TLNearestDc ndc;
@@ -200,8 +184,7 @@ public class TelegramImpl
 //		}
 //		System.out.println("getNearestDc " + ndc.getNearestDc() + ", getThisDc " + ndc.getThisDc());
 //		api.switchToDc(ndc.getNearestDc());
-
-        TLRequestAuthCheckPhone authCheckPhone = new TLRequestAuthCheckPhone();
+        final TLRequestAuthCheckPhone authCheckPhone = new TLRequestAuthCheckPhone();
         authCheckPhone.setPhoneNumber(config.phone);
         try {
 	    Log.debug("chat-telegram", "trying TLRequestAuthCheckPhone");
@@ -240,7 +223,7 @@ if (e.getErrorTag().startsWith("USER_MIGRATE_"))
     events.onError(e.getClass().getName() + ":" + e.getErrorCode() + ":" + e.getMessage());
     				return;
                 }
-		Log.debug("chat-telegram ", "whatdo :" + task);
+		Log.debug("chat-telegram ", "task:" + task);
                 api.switchToDc(destDC);
                 //phone = "99966"+destDC+"2345";
 		Log.debug("chat-telegram", "destDC:" + destDC);
@@ -255,8 +238,11 @@ if (e.getErrorTag().startsWith("USER_MIGRATE_"))
     Log.error("chat-telegram", e.getClass().getName() + ":" + e.getMessage());
 			e.printStackTrace();
 		}
+	Log.debug("chat-telegram", "telegram opened: state=" + state + ", task=" + task);
+    }
 
-	Log.debug("chat-telegram", "switch(" + task + ")");
+    public void connect()
+    {
         switch (task)
         {
         	case SIGN_IN:
@@ -276,18 +262,17 @@ events.onError(task.name()+" "+e.getMessage());
 			}
         		return;
         	case NONE:
-        		final String code=phoneSms;
-        		final String hash=phoneHash;
+		    final String code = sett.getAuthSmsCode("");
+		    final String hash = sett.getAuthPhoneHash("");
 			try {
 				signIn(code, hash);
 			} 
 catch (Exception e) 
 {
-				// TODO Auto-generated catch block
-events.onError(task.name()+" "+e.getMessage());
+    onError(e);
 				return;
 			}
-events.onAuthFinish(); 
+			//events.onAuthFinish(); 
         		return;
         }
         	}
@@ -374,7 +359,7 @@ events.onError(task.name()+" "+e.getMessage());
 		System.out.println(
 				"getAuthKey " + Hex.encodeHex(api.getState().getAuthKey(that.tlconfig.getThisDc())));
 		System.out.println("getUserId " + api.getState().getUserId());
-		events.onAuthFinish();
+		//		events.onAuthFinish();
     }
     
 	public TelegramApi getApi() 
@@ -443,7 +428,7 @@ events.onError(whatdo.name()+" "+e.getMessage());
 		System.out.println(
 				"getAuthKey " + Hex.encodeHex(api.getState().getAuthKey(that.tlconfig.getThisDc())));
 		System.out.println("getUserId " + api.getState().getUserId());
-		events.onAuthFinish();
+//		events.onAuthFinish();
 	}
     */
 	
@@ -465,7 +450,7 @@ events.onError(e.getMessage());
 			  System.out.println("2"); 
 			  memstate.doAuth(auth); 
 			  System.out.println("3");
-			  that.events.onAuthFinish(); 
+			  //			  that.events.onAuthFinish(); 
 			  return; 
 			  } 
 		  catch (Exception e) {
@@ -675,4 +660,11 @@ catch (Exception e) {
 				finished.run();
 			}});
 	}
+
+    private void onError(Exception e)
+    {
+	Log.error("chat-telegram", e.getClass().getName() + ":" + e.getMessage());
+	e.printStackTrace();
+	events.onError(e.getClass() + ":" + e.getMessage());
+    }
 }

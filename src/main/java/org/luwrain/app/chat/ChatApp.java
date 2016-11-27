@@ -31,6 +31,7 @@ class ChatApp implements Application, MonoApp, TelegramAccountListener
 	    return false;
 	actions = new Actions(luwrain);
 	createArea();
+	open();
 	return true;
     }
 
@@ -111,8 +112,6 @@ chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
 
 chatArea.setEnteringPrefix("proba>");
 chatArea.setListener((text)->chatArea.addLine("entered>", text));
-
-		//		base.init();
     }
 
     private boolean onTreeAction(EnvironmentEvent event)
@@ -138,10 +137,10 @@ chatArea.setListener((text)->chatArea.addLine("entered>", text));
 	luwrain.onAreaNewContent(treeArea);
     }
 
-    private void autoConnect()
+    private void open()
     {
-	for(Account a: base.loadAccounts())
-	    a.autoConnect(()->treeArea.refresh());
+	for(Account a: base.getAccounts())
+	    a.open(()->treeArea.refresh());
     }
 
     private boolean gotoTreeArea()
