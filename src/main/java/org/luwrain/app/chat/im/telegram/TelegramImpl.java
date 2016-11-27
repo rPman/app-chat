@@ -14,7 +14,6 @@ import java.util.concurrent.*;
 
 import org.luwrain.core.*;
 import org.luwrain.app.chat.im.*;
-import org.luwrain.app.chat.TelegramAccount;
 
 import org.apache.commons.codec.binary.Hex;
 
@@ -77,7 +76,7 @@ public class TelegramImpl
     private TelegramApi api;
     private TLAuthorization auth;
     TLConfig tlconfig;
-    TelegramAccount tAccount;
+    private final Account tAccount;
     private final MemoryApiState memstate;
 
     TLCheckedPhone checked=null;
