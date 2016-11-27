@@ -110,7 +110,7 @@ TelegramAccount tAccount, Settings.Telegram sett)
 	NullCheck.notNull(events, "events");
 	NullCheck.notNull(sett, "sett");
 	this.config = config;
-	//	this.tAccount=tAccount;
+	this.tAccount=tAccount;
 	this.events = events;
 	this.sett = sett;
     this.memstate = new MemoryApiState("Telegram."+config.phone+".raw");
@@ -425,24 +425,25 @@ catch (Exception e)
 		Log.debug("chat-telegram", "isTemporalSession " + auth.isTemporalSession());
 	}
 
-	public void checkContacts() {
-		TLRequestContactsGetContacts cntcs = new TLRequestContactsGetContacts();
-		cntcs.setHash("");
-		TLContacts rescnts;
-		try {
-			getEvents().onBeginAddingContact();
-			System.out.println("getSeachContact "+getApi().getState().getUserId());
-			rescnts = (TLContacts) api.doRpcCallNonAuth(cntcs,TIMEOUT,api.getState().getPrimaryDc());
-			System.out.println("contacts users " + rescnts.getUsers().size());
-			System.out.println("contacts result " + rescnts.getContacts().size());
-			for(TLAbsUser o:rescnts.getUsers())
-			{
-				TLUser u=(TLUser)o;
-				TelegramContactImpl contact=new TelegramContactImpl(tAccount){};
-				contact.init(u.getAccessHash(),u.getId(),new TelegramMessageListImpl());
-				contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
-				getEvents().onNewContact(contact);	
-			}
+    public void getContacts() 
+    {
+	final TLRequestContactsGetContacts cntcs = new TLRequestContactsGetContacts();
+	cntcs.setHash("");
+	TLContacts rescnts;
+	try {
+	    getEvents().onBeginAddingContact();
+	    Log.debug("chat-telegram ", "getSearchContact "+getApi().getState().getUserId());
+	    rescnts = (TLContacts) api.doRpcCallNonAuth(cntcs,TIMEOUT,api.getState().getPrimaryDc());
+	    Log.debug("chat-telegram", "contacts users " + rescnts.getUsers().size());
+	    Log.debug("chat-telegram", "contacts result " + rescnts.getContacts().size());
+	    for(TLAbsUser o:rescnts.getUsers())
+	    {
+		final TLUser u=(TLUser)o;
+		final TelegramContactImpl contact=new TelegramContactImpl(tAccount){};
+		contact.init(u.getAccessHash(),u.getId(),new TelegramMessageListImpl());
+		contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
+		getEvents().onNewContact(contact);	
+	    }
 //			TLRequestMessagesSendMessage message=new TLRequestMessagesSendMessage();
 //			message.setMessage("hello");
 //			System.out.println(rescnts.getUsers().get(0).getId());
@@ -462,38 +463,42 @@ catch (Exception e)
 //				}
 //			});
 //			getApi().doRpcCall(message);
-			System.out.println("ОК");
-			return;
-		} catch (Exception e) {
-			e.printStackTrace();
-			getEvents().onError(e.getMessage());
-        	return;
-		} 
-	}
+	    Log.debug("chat-telegram", "list of contacts received");
+	    return;
+	} 
+	catch (Exception e) 
+	{
+	    onError(e);
+	    return;
+	} 
+    }
 
     public void finish()
 	{
 		api.close();
 	}
 
-	public void sendNewMessage(long accessHash,int userId,String text)
+	public boolean  sendNewMessage(long accessHash, int userId, String text)
 	{
+	    NullCheck.notNull(text, "text");
+	    Log.debug("chat-telegram", "sending \"" + text + "\" to " + userId);
 		try {
-			TLRequestMessagesSendMessage message=new TLRequestMessagesSendMessage();
+		    final TLRequestMessagesSendMessage message=new TLRequestMessagesSendMessage();
 			message.setMessage(text);
 	//		System.out.println(rescnts.getUsers().get(0).getId());
 			message.setRandomId(new Date().getTime());
-			TLInputPeerUser	peeruser=new TLInputPeerUser();
+			final TLInputPeerUser	peeruser=new TLInputPeerUser();
 			peeruser.setAccessHash(accessHash);
 			peeruser.setUserId(userId);
 			message.setPeer(peeruser);
-			TLAbsUpdates updates=api.doRpcCallNonAuth(message);
+			final TLAbsUpdates updates=api.doRpcCallNonAuth(message);
+			Log.debug("chat-telegram", "message sent successfully");
+			return true;
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
-			events.onError(e.getMessage());
-	       	return;
+		    onError(e);
+	       	return false;
 		} 
 	}
 

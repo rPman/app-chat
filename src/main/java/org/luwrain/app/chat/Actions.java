@@ -87,7 +87,9 @@ class Actions
     {
 	if (obj instanceof Contact)
 	{
-	    chatArea.selectContact((Contact)treeArea.selected());
+	    final Contact contact = (Contact)treeArea.selected();
+	    chatArea.setCurrentContact(contact.getAccount(), contact);
+	    luwrain.setActiveArea(chatArea);
 	    return true;
 	}
 	if (obj instanceof Account)

@@ -47,6 +47,8 @@ TelegramAccountListener listener)
 					}
 					@Override public void onNewContact(Contact contact)
 					{
+					    NullCheck.notNull(contact, "contact");
+					    Log.debug("chat-telegram", "receiving contact " + contact);
 					    contacts.add(contact);
 					}
 					@Override public void onError(String message)
@@ -66,6 +68,7 @@ TelegramAccountListener listener)
 					}
 					@Override public void onBeginAddingContact()
 					{
+					    Log.debug("chat-telegram", "starting receiving contacts");
 					    contacts.clear();			
 					}
 				    },this, sett);
@@ -83,6 +86,8 @@ TelegramAccountListener listener)
     @Override public void activate(Runnable onFinished)
     {
 messenger.connect();
+messenger.getContacts();
+onFinished.run();
     }
 
     @Override public Contact[] getContacts()
@@ -121,6 +126,9 @@ listener.onUnknownContactReciveMessage(message);
 
 	@Override public Message sendNewMessage(String text,Contact contact)
 	{
+	    NullCheck.notNull(text, "text");
+	    NullCheck.notNull(contact, "contact");
+	    Log.debug("chat-telegram", "sending \"" + text + "\' to " + contact);
 		TelegramImpl timp=(TelegramImpl)messenger;
 		TelegramContactImpl tcontact=(TelegramContactImpl)contact;
 		timp.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
@@ -132,7 +140,7 @@ listener.onUnknownContactReciveMessage(message);
 				     String lastName, Runnable onFinished)
     {
 	messenger.addNewContact(phone, firstName, lastName, ()->luwrain.runInMainThread(()->{
-		messenger.checkContacts();		
+		messenger.getContacts();		
 		onFinished.run();
 		}));
     }

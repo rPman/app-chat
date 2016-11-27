@@ -111,7 +111,6 @@ chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
 
 	treeArea.setClickHandler((area, obj)->actions.onTreeClick(area, chatArea, obj));
 chatArea.setEnteringPrefix("proba>");
-chatArea.setListener((text)->chatArea.addLine("entered>", text));
     }
 
     private boolean onTreeAction(EnvironmentEvent event)

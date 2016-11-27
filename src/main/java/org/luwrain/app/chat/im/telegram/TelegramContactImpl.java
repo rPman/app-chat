@@ -2,6 +2,7 @@ package org.luwrain.app.chat.im.telegram;
 
 import java.util.Date;
 
+import org.luwrain.core.*;
 import org.luwrain.app.chat.im.Account;
 import org.luwrain.app.chat.im.Contact;
 import org.luwrain.app.chat.im.MessageList;
@@ -16,11 +17,12 @@ public class TelegramContactImpl implements Contact
 	String userName;
 	String phone;
 	MessageList messages;
-	Account account;
-	
+	private final Account account;
+
 	TelegramContactImpl(Account account)
 	{
-		this.account=account;
+	    NullCheck.notNull(account, "account");
+	    this.account = account;
 	}
 	
 	@Override public Account getAccount()
