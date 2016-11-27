@@ -80,16 +80,15 @@ TelegramAccountListener listener)
 }).start();
 	}
 
-    @Override public void connect(Runnable onFinished)
+    @Override public void activate(Runnable onFinished)
     {
-	//	messenger.connect();
+messenger.connect();
     }
 
     @Override public Contact[] getContacts()
     {
 	return contacts.toArray(new Contact[contacts.size()]);
     }
-
 
 private void receiveNewMessageImpl(String message,int date,int userId)
 	{
@@ -109,9 +108,8 @@ listener.onNewMessage();
 //		addNewContact(userId);
 listener.onUnknownContactReciveMessage(message);
 //		System.out.println("пришло сообщение от неизвестного userId");
-		
 	}
-	
+
 //	private void addNewContact(int userId)
 //	{
 //		TelegramImpl timp=(TelegramImpl)messenger;
@@ -147,7 +145,7 @@ listener.onUnknownContactReciveMessage(message);
 		TelegramImpl timp=(TelegramImpl)messenger;
 		timp.addNewContact(phone,firstname,lastname,new Runnable()
 		{
-			
+
 			@Override public void run()
 			{
 				messenger.checkContacts();		

@@ -41,7 +41,6 @@ class ChatApp implements Application, MonoApp, TelegramAccountListener
 	treeParams.environment = new DefaultControlEnvironment(luwrain);
 	treeParams.model = base.getTreeModel();
 	treeParams.name = strings.sectionsAreaName();
-	//treeParams.clickHandler = (area, obj)->openSection(obj);
 
 	treeArea = new TreeArea(treeParams){
 
@@ -110,6 +109,7 @@ chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
 	    }
 	};
 
+	treeArea.setClickHandler((area, obj)->actions.onTreeClick(area, chatArea, obj));
 chatArea.setEnteringPrefix("proba>");
 chatArea.setListener((text)->chatArea.addLine("entered>", text));
     }
@@ -119,8 +119,8 @@ chatArea.setListener((text)->chatArea.addLine("entered>", text));
 	NullCheck.notNull(event, "event");
 	if (ActionEvent.isAction(event, "add-account"))
 	    return actions.onAddAccount(treeArea);
-	if (ActionEvent.isAction(event, "select-item"))
-	    return actions.onSelectItem(treeArea, chatArea);
+	//	if (ActionEvent.isAction(event, "select-item"))
+	//	    return actions.onSelectItem(treeArea, chatArea);
 	if (ActionEvent.isAction(event, "add-contact"))
 	    return actions.onAddContact(treeArea, chatArea);
 	return false;

@@ -22,7 +22,7 @@ class Actions
     {
 	return new Action[]{
 	    new Action("add-account", "Добавить новую учётную запись", new KeyboardEvent(KeyboardEvent.Special.INSERT)),
-	    new Action("select-item", "Выбрать контакт для общения", new KeyboardEvent(KeyboardEvent.Special.ENTER)),
+	    //	    new Action("select-item", "Выбрать контакт для общения", new KeyboardEvent(KeyboardEvent.Special.ENTER)),
 	    new Action("add-contact", "Добавить контакт", new KeyboardEvent(KeyboardEvent.Special.F6)),
 	};
     }
@@ -83,18 +83,20 @@ class Actions
 	return true;
     }
 
-boolean onSelectItem(TreeArea treeArea,ChatArea chatArea)
+    boolean onTreeClick(TreeArea treeArea,ChatArea chatArea, Object obj)
     {
-				if (treeArea.selected() instanceof Contact)
-		{
-			chatArea.selectContact((Contact)treeArea.selected());
-		} else
-		if (treeArea.selected() instanceof Account)
-		{		
-		    ((Account)treeArea.selected()).connect(()->treeArea.refresh());
-		}
-		return false;
+	if (obj instanceof Contact)
+	{
+	    chatArea.selectContact((Contact)treeArea.selected());
+	    return true;
 	}
+	if (obj instanceof Account)
+	{		
+	    ((Account)treeArea.selected()).activate(()->treeArea.refresh());
+	    return true;
+	}
+	return false;
+    }
 
     boolean onAddContact(TreeArea treeArea,ChatArea chatArea)
     {

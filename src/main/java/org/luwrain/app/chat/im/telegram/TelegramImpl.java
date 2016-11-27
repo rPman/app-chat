@@ -187,9 +187,9 @@ catch (Exception e)
         final TLRequestAuthCheckPhone authCheckPhone = new TLRequestAuthCheckPhone();
         authCheckPhone.setPhoneNumber(config.phone);
         try {
-	    Log.debug("chat-telegram", "trying TLRequestAuthCheckPhone");
+	    Log.debug("chat-telegram", "trying TLRequestAuthCheckPhone for " + config.phone);
 	    checked = api.doRpcCallNonAuth(authCheckPhone,TIMEOUT,api.getState().getPrimaryDc());
-		Log.debug("chat-telegram", "authsendcode:" + checked.isPhoneRegistered());
+		Log.debug("chat-telegram", "isPhoneRegistered:" + checked.isPhoneRegistered());
 		if (checked.isPhoneRegistered()==false)
 		{
 			task = Task.SIGN_UP;
@@ -243,195 +243,126 @@ if (e.getErrorTag().startsWith("USER_MIGRATE_"))
 
     public void connect()
     {
+	Log.debug("chat-telegram", "connecting, task:" + task);
         switch (task)
         {
-        	case SIGN_IN:
-        	case SIGN_UP:
-		    sign();
-		    break;
-        	case MIGRATE:
-			try {
-				ExportAuthorization();
-				ImportAuthorization();
-			} catch (Exception e) 
-{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-events.onError(task.name()+" "+e.getMessage());
-				return;
-			}
-        		return;
-        	case NONE:
-		    final String code = sett.getAuthSmsCode("");
-		    final String hash = sett.getAuthPhoneHash("");
-			try {
-				signIn(code, hash);
-			} 
-catch (Exception e) 
-{
-    onError(e);
-				return;
-			}
-			//events.onAuthFinish(); 
-        		return;
-        }
-        	}
+	case SIGN_IN:
+	case SIGN_UP:
+	    sign();
+	    break;
+	case MIGRATE:
+	    try {
+		ExportAuthorization();
+		ImportAuthorization();
+		return;
+	    } catch (Exception e) 
+	    {
+		onError(e);
+		return;
+	    }
+	case NONE:
+	    final String code = sett.getAuthSmsCode("");
+	    final String hash = sett.getAuthPhoneHash("");
+	    try {
+		signIn(code, hash);
+		return;
+	    } 
+	    catch (Exception e) 
+	    {
+		onError(e);
+		return;
+	    }
+	}
+    }
 
     private void sign()
     {
 	//Log.debug("chat-telegram", "performing signUp()");
-		// request twofactor auth
-		TLRequestAuthSendCode authSendCode =  new TLRequestAuthSendCode();
+	// request twofactor auth
+	final TLRequestAuthSendCode authSendCode =  new TLRequestAuthSendCode();
         authSendCode.setPhoneNumber(config.phone);
         authSendCode.setApiHash(APIHASH);
         authSendCode.setApiId(APIID);
-	TLSentCode sentCode=null;
+	final TLSentCode sentCode;
+	final String phoneCodeHash;
 	try {
 	    Log.debug("chat-telegram", "trying RpcRequestAuthSendCode "+memstate.getPrimaryDc());
-sentCode = api.doRpcCallNonAuth(authSendCode,TIMEOUT,memstate.getPrimaryDc());
+	    sentCode = api.doRpcCallNonAuth(authSendCode,TIMEOUT,memstate.getPrimaryDc());
+	    phoneCodeHash = sentCode.getPhoneCodeHash();
 	} 
-	catch (Exception e1) 
+	catch (Exception e) 
 	{
-	    Log.error("chat-telegram", e1.getClass().getName() + ":" + e1.getMessage());
-	    e1.printStackTrace();
-	    events.onError(task.name()+" "+e1.getMessage());
-	    finish();
+	    onError(e, "TLRequestAuthSendCode");
 	    return;
 	}
 	final String answer = events.askTwoPassAuthCode("Enter the code from SMS:");
 	if (answer == null || answer.trim().isEmpty())
+	    return;
+	Log.debug("chat-telegram", "phone code hash:" + phoneCodeHash);
+	Log.debug("chat-telegram", "user answer:" + answer);
+	auth = null;
+	switch (task)
 	{
-	    finish();
-	return;
+	case SIGN_IN:
+	    try {
+		signIn(answer, phoneCodeHash);
+	    } 
+	    catch (Exception e) 
+	    {
+		onError(e);
+		return;
+	    }
+	    break;
+	case SIGN_UP:
+	    final TLRequestAuthSignUp sign = new TLRequestAuthSignUp();
+	    sign.setFirstName(config.firstName);
+	    sign.setLastName(config.lastName);
+	    sign.setPhoneCode(answer);
+	    sign.setPhoneCodeHash(sentCode.getPhoneCodeHash());
+	    sign.setPhoneNumber(config.phone);
+	    try {
+		auth = api.doRpcCallNonAuth(sign);
+	    } 
+	    catch (RpcException | TimeoutException e) 
+	    {
+		onError(e, "TLRequestAuthSignUp");
+		return;
+	    } 
+	    Log.debug("chat-telegram", "isTemporalSession "+auth.isTemporalSession()+" user "+auth.getUser().getId());
+	    break;
 	}
-
-		final TelegramImpl that = this;
-		auth = null;
-		 switch (task)
-	        {
-	        	case SIGN_IN:
-			try {
-				signIn(answer, sentCode.getPhoneCodeHash());
-			} 
-catch (Exception e) 
-{
-events.onError(task.name()+" "+e.getMessage());
-				return;
-			}
-			break;
-	        	case SIGN_UP:
-	        		TLRequestAuthSignUp sign = new TLRequestAuthSignUp();
-	            	sign.setFirstName(config.firstName);
-	            	sign.setLastName(config.lastName);
-	            	sign.setPhoneCode(answer);
-	            	sign.setPhoneCodeHash(sentCode.getPhoneCodeHash());
-	            	sign.setPhoneNumber(config.phone);
-	            	try {
-	        			auth = api.doRpcCallNonAuth(sign);
-	        		} catch (RpcException e) {
-	        			// TODO Auto-generated catch block
-	        			e.printStackTrace();
-	        		} catch (TimeoutException e) {
-	        			// TODO Auto-generated catch block
-	        			e.printStackTrace();
-	        		}
-	            	System.out.println("isTemporalSession "+auth.isTemporalSession()+" user "+auth.getUser().getId());
-	    			break;
-	        	case MIGRATE:
-	        		//TODO ������ ��� ������
-	        		break;
-	        }
-		 setState(State.authorized);
-		//������� ��� � hash ����������� � ����
-		 try(FileWriter writer = new FileWriter("Telegram."+config.phone+".txt"))
-	        {
-	           // ������ ���� ������
-	            writer.write(answer);
-	            writer.append('\n');
-	            writer.write(sentCode.getPhoneCodeHash());
-	            writer.append('\n');
-	            writer.flush();
-	        }
-	        catch(IOException ex)
-{
-             	            System.out.println(ex.getMessage());
-	        } 
-		System.out.println(
-				"getAuthKey " + Hex.encodeHex(api.getState().getAuthKey(that.tlconfig.getThisDc())));
-		System.out.println("getUserId " + api.getState().getUserId());
-		//		events.onAuthFinish();
+	setState(State.authorized);
+	sett.setAuthSmsCode(answer);
+	sett.setAuthPhoneHash(phoneCodeHash);
+	Log.debug("chat-telegram", "getAuthKey " + Hex.encodeHex(api.getState().getAuthKey(tlconfig.getThisDc())));
+	Log.debug("chat-telegram", "getUserId " + api.getState().getUserId());
     }
-    
-	public TelegramApi getApi() 
+
+private TelegramApi getApi() 
 {
 		return api;
 	}
 
-	public Events getEvents() 
+private Events getEvents() 
 {
 		return events;
 	}
 
-	public MemoryApiState getMemState() 
+    private MemoryApiState getMemState() 
 {
 		return memstate;
 	}
-	
-	synchronized public State getState() 
+
+    synchronized public State getState() 
 	{
-			return state;
-		}
+	    return state;
+	}
+
 	synchronized public void setState(State state) 
 	{
 			this.state=state;
 		}
-    /*
-	public void twoPass(String code) 
-{
-    NullCheck.notNull(code, "code");
-    Log.debug("chat-telegram", "twoPass(" + code + ")");
-		final TelegramImpl that = this;
-		auth = null;
-		 switch (whatdo)
-	        {
-	        	case signin:
-			try {
-				signIn(code,that.sentCode.getPhoneCodeHash());
-			} 
-catch (Exception e) 
-{
-events.onError(whatdo.name()+" "+e.getMessage());
-				return;
-			}
-			break;
-	        	case signup:
-	        		SignUp(code);
-	    			break;
-	        	case migrate:
-	        		//TODO ������ ��� ������
-	        		break;
-	        }
-		//������� ��� � hash ����������� � ����
-		 try(FileWriter writer = new FileWriter("Telegram."+config.phone+".txt"))
-	        {
-	           // ������ ���� ������
-	            writer.write(code);
-	            writer.append('\n');
-	            writer.write(sentCode.getPhoneCodeHash());
-	            writer.append('\n');
-	            writer.flush();
-	        }
-	        catch(IOException ex)
-{
-             	            System.out.println(ex.getMessage());
-	        } 
-		System.out.println(
-				"getAuthKey " + Hex.encodeHex(api.getState().getAuthKey(that.tlconfig.getThisDc())));
-		System.out.println("getUserId " + api.getState().getUserId());
-//		events.onAuthFinish();
-	}
-    */
-	
+
 	private void ImportAuthorization() throws Exception
 	{
 		final TelegramImpl that = this;
@@ -456,9 +387,8 @@ events.onError(e.getMessage());
 		  catch (Exception e) {
 			  throw e;
 		  } 
-
 	}
-	
+
 	private void ExportAuthorization() throws Exception
 	{
 		final TelegramImpl that = this;
@@ -474,49 +404,26 @@ events.onError(e.getMessage());
 			throw e1;
 		}
 	}
-	
+
 	private void signIn(String code,String hash) throws Exception
 	{
 		final TelegramImpl that = this;
 		Log.debug("chat-telegram", "signIn(" + code + ", " + hash + ")");
-		TLRequestAuthSignIn sign = new TLRequestAuthSignIn();
+		final TLRequestAuthSignIn sign = new TLRequestAuthSignIn();
 		sign.setPhoneCode(code);
 		sign.setPhoneCodeHash(hash);
 		sign.setPhoneNumber(that.config.phone);
 		try {
 		    auth = api.doRpcCallNonAuth(sign, TIMEOUT, api.getState().getPrimaryDc());
 		} 
-catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+catch (Exception e) 
+{
+    onError(e, "TLRequestAuthSignIn");
 			throw e;
 		} 
 		setState(State.authorized);
-		System.out.println("isTemporalSession " + auth.isTemporalSession());
+		Log.debug("chat-telegram", "isTemporalSession " + auth.isTemporalSession());
 	}
-	
-    /*
-	private void SignUp(String code)
-	{
-		final TelegramImpl that = this;
-		TLRequestAuthSignUp sign = new TLRequestAuthSignUp();
-    	sign.setFirstName("dgfgd");
-    	sign.setLastName("dfgdfg");
-    	sign.setPhoneCode(code);
-    	sign.setPhoneCodeHash(sentCode.getPhoneCodeHash());
-    	sign.setPhoneNumber(that.config.phone);
-    	try {
-	    auth = api.doRpcCallNonAuth(sign, TIMEOUT, 2);
-		} catch (RpcException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TimeoutException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	System.out.println("isTemporalSession "+auth.isTemporalSession()+" user "+auth.getUser().getId());
-	}
-    */
 
 	public void checkContacts() {
 		TLRequestContactsGetContacts cntcs = new TLRequestContactsGetContacts();
@@ -568,7 +475,7 @@ catch (Exception e) {
 	{
 		api.close();
 	}
-	
+
 	public void sendNewMessage(long accessHash,int userId,String text)
 	{
 		try {
@@ -660,6 +567,14 @@ catch (Exception e) {
 				finished.run();
 			}});
 	}
+
+    private void onError(Exception e, String comment)
+    {
+	Log.error("chat-telegram", comment + ":" + e.getClass().getName() + ":" + e.getMessage());
+	e.printStackTrace();
+	events.onError(e.getClass() + ":" + e.getMessage());
+    }
+
 
     private void onError(Exception e)
     {
