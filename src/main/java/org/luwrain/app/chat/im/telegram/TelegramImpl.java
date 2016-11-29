@@ -127,7 +127,7 @@ public class TelegramImpl implements Messenger
 		    if (updates instanceof TLUpdateShortMessage) 
 			{
 				TLUpdateShortMessage updatesh=(TLUpdateShortMessage)updates;
-				tAccount.reciveNewMessage(updatesh.getMessage(),updatesh.getDate(),updatesh.getUserId()); 
+				tAccount.reciveNewMessage(events,updatesh.getMessage(),updatesh.getDate(),updatesh.getUserId()); 
 			}
 		}
 	    });

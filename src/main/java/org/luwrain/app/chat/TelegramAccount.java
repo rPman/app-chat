@@ -70,6 +70,8 @@ public class TelegramAccount implements Account
 		@Override public void onNewMessage(Message message,Contact recipient)
 		{
 			recipient.getMessages().lastMessages().add(message);
+			recipient.getMessages().addUnreadMessage();
+			luwrain.playSound(Sounds.CHAT_MESSAGE);
 			uievent.onNewMessage();
 		}
 		@Override public void onBeginAddingContact()
@@ -117,7 +119,7 @@ public class TelegramAccount implements Account
 		thread.start();
 
 	}
-	public void reciveNewMessage(String message,int date,int userId)
+	public void reciveNewMessage(Events events,String message,int date,int userId)
 	{
 		//TelegramMessageImpl message=new TelegramMessageImpl();
 		for(Contact c:contacts)
@@ -126,8 +128,8 @@ public class TelegramAccount implements Account
 			if (contact.getUserId()==userId)
 			{
 				TelegramMessageImpl msg=new TelegramMessageImpl(message,new Date(),contact);
-				contact.getMessages().lastMessages().add(msg);
-				luwrain.runInMainThread(()->uievent.onNewMessage());
+//				contact.getMessages().lastMessages().add(msg);
+				luwrain.runInMainThread(()->events.onNewMessage(msg,contact));
 				return;
 			}
 		}

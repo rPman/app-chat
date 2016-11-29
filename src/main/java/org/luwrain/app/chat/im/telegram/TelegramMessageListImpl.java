@@ -9,7 +9,7 @@ import org.luwrain.app.chat.im.MessageList;
 public class TelegramMessageListImpl implements MessageList
 {
 	Vector<Message> history;
-	int history_count;
+	int unreadCount;
 
 	@Override public Vector<Message> lastMessages()
 	{
@@ -25,12 +25,18 @@ public class TelegramMessageListImpl implements MessageList
 	@Override public int unreadCount()
 	{
 		// TODO Auto-generated method stub
-		return history_count;
+		return unreadCount;
 	}
 
 	@Override public void decreaseCount(int cnt)
 	{
-		history_count-=cnt;
+		unreadCount-=cnt;
+	}
+
+	@Override public void addUnreadMessage()
+	{
+		unreadCount++;
+		
 	}
 	
 

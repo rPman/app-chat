@@ -148,6 +148,8 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 	public void selectContact(Contact selected)
 	{
 		this.contact=selected;
+		this.setHotPoint(0,selected.getMessages().lastMessages().size()-selected.getMessages().unreadCount());
+		selected.getMessages().decreaseCount(selected.getMessages().unreadCount());
 		environment.onAreaNewContent(this);
 	}
 

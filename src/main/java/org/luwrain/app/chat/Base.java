@@ -94,7 +94,7 @@ final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), ac
 							
 							@Override public void onNewMessage()
 							{
-								chatArea.setEmbeddedEditLine(7,chatArea.getLineCount()-1,"");
+//								chatArea.setEmbeddedEditLine(7,chatArea.getLineCount()-1,"");
 								chatArea.setHotPointY(chatArea.getLineCount()-1);
 								luwrain.onAreaNewContent(chatArea);								
 							}

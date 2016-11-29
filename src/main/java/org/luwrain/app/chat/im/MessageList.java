@@ -9,5 +9,6 @@ public interface MessageList
 	Vector<Message> lastMessages();
 	int unreadCount();
 	void decreaseCount(int cnt);
+	void addUnreadMessage();
 	
 }

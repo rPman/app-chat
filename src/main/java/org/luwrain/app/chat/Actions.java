@@ -3,8 +3,14 @@ package org.luwrain.app.chat;
 
 import org.luwrain.core.*;
 import org.luwrain.core.events.*;
+
+import java.util.Date;
+import java.util.Vector;
+
 import org.luwrain.app.chat.im.Account;
 import org.luwrain.app.chat.im.Contact;
+import org.luwrain.app.chat.im.Message;
+import org.luwrain.app.chat.im.MessageList;
 import org.luwrain.controls.*;
 import org.luwrain.popups.Popups;
 
@@ -24,6 +30,7 @@ class Actions
 		     new Action("add-account", "Добавить новую учётную запись", new KeyboardEvent(KeyboardEvent.Special.INSERT)),
 		     new Action("select-item", "Выбрать контакт для общения", new KeyboardEvent(KeyboardEvent.Special.ENTER)),
 		     new Action("add-contact", "Добавить контакт", new KeyboardEvent(KeyboardEvent.Special.F6)),
+		     new Action("find-unread", "Поиск не прочитанных сообщений", new KeyboardEvent(KeyboardEvent.Special.F5))
 	 };
      }
 
@@ -123,6 +130,47 @@ class Actions
 				luwrain.onAreaNewContent(treeArea);				
 			}
 		});
+		return false;
+	}
+
+	public boolean onFindUnreadMessage(TreeArea treeArea,ChatArea chatArea,Base base)
+	{
+//		Object obj=chatArea.get);
+		Date date=null;
+		Account aread;
+		Contact cread=null;
+		for (Account a:base.accounts)
+		{
+			Contact[] contacts=a.getContacts();
+			for (Contact c:contacts)
+			{
+				MessageList ml=c.getMessages();
+				if (ml.unreadCount()!=0)
+				{
+					Vector<Message> m=ml.lastMessages();
+					int count=ml.unreadCount();
+					if (date==null)
+					{
+						date=ml.lastMessages().get(m.size()-count).getDate();
+						aread=a;
+						cread=c;
+					}
+					else
+					if (date.before(ml.lastMessages().get(m.size()-count).getDate()))
+					{
+						date=ml.lastMessages().get(m.size()-count).getDate();
+						aread=a;
+						cread=c;
+					}
+				}
+			}		
+		}
+		if (cread!=null)
+		{
+			treeArea.selectObject(cread);
+			onSelectItem(treeArea,chatArea);
+			base.gotoSecondArea();
+		}
 		return false;
 	}
 }

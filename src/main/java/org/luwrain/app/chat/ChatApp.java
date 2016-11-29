@@ -151,6 +151,8 @@ treeArea = new TreeArea(treeParams){
 	    return actions.onSelectItem(treeArea,base.getChatArea());
 	if (ActionEvent.isAction(event, "add-contact"))
 	    return actions.onAddContact(treeArea,base.getChatArea());
+	if (ActionEvent.isAction(event, "find-unread"))
+	    return actions.onFindUnreadMessage(treeArea,base.getChatArea(),base);
 	return false;
     }
 
