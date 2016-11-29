@@ -60,7 +60,7 @@ public class TelegramAccount implements Account
 		{
 		    System.out.println("onAuthFinish");
 		    messenger.checkContacts();
-		    finish.run();
+		    luwrain.runInMainThread(()->finish.run());
 		}
 		@Override public String askTwoPassAuthCode(String message)
 		{
@@ -127,7 +127,7 @@ public class TelegramAccount implements Account
 			{
 				TelegramMessageImpl msg=new TelegramMessageImpl(message,new Date(),contact);
 				contact.getMessages().lastMessages().add(msg);
-				uievent.onNewMessage();
+				luwrain.runInMainThread(()->uievent.onNewMessage());
 				return;
 			}
 		}
@@ -183,7 +183,7 @@ public class TelegramAccount implements Account
 			@Override public void run()
 			{
 				messenger.checkContacts();		
-				finished.run();
+				luwrain.runInMainThread(()->finished.run());
 			}
 			
 		});

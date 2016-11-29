@@ -667,7 +667,6 @@ catch (Exception e) {
 			@Override public void onResult(TLImportedContacts arg0)
 			{
 				System.out.println("Add contact success: "+arg0.getUsers().size());				
-
 				finished.run();
 			}});
 	}
