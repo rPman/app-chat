@@ -81,7 +81,7 @@ public class Telegram
     TLCheckedPhone checked=null;
 
     private Task task;
-    private State state = State.none;
+    private State state = State.READY_FOR_AUTHORIZATION;
 
     public Telegram(Config config, Events events,
 		    Account account, Settings.Telegram sett)

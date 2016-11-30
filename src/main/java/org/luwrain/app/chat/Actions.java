@@ -94,7 +94,7 @@ class Actions
 	}
 	if (obj instanceof Account)
 	{		
-	    ((Account)treeArea.selected()).activate(()->treeArea.refresh());
+	    ((Account)treeArea.selected()).activate();
 	    return true;
 	}
 	return false;

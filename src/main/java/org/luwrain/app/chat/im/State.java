@@ -12,5 +12,5 @@ public enum State {
     authorized
 
     /** еще не запущена */,
-    none
+    READY_FOR_AUTHORIZATION,
 }

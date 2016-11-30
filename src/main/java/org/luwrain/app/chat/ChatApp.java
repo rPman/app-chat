@@ -138,7 +138,7 @@ chatArea.setEnteringPrefix("proba>");
     private void open()
     {
 	for(Account a: base.getAccounts())
-	    a.open(()->treeArea.refresh());
+	    a.open();
     }
 
     private boolean gotoTreeArea()

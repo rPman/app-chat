@@ -64,20 +64,23 @@ class TelegramAccount implements Account
 				    },this, sett);
     }
 
-    @Override public void open(Runnable onFinished)
+    @Override public void open()
     {	
-	NullCheck.notNull(onFinished, "onFinished");
 	new Thread(()->{
 		telegram.open();
-		    luwrain.runInMainThread(onFinished);
+		luwrain.runInMainThread(()->listener.refreshTree());
 	}).start();
     }
 
-    @Override public void activate(Runnable onFinished)
+    @Override public void activate()
     {
+	if (telegram.getState() == State.UNREGISTERED || telegram.getState() == State.REGISTERED)
+	    if (!Popups.confirmDefaultYes(luwrain, "Подключение новой учётной записи", "Учётная запись не подключена; для подключения вам будет выслан PIN-код, и открыто окно для его ввода. Вы хотите продолжить?"))
+		return;
 	telegram.connect();
 telegram.getContacts();
-onFinished.run();
+luwrain.playSound(Sounds.DONE);
+listener.refreshTree();
     }
 
     @Override public Contact[] getContacts()
@@ -123,6 +126,19 @@ onFinished.run();
 
     @Override public String toString()
     {
-	return telegram.getState() + Base.getPhoneDesignation(sett.getPhone(""));
+	final String prefix;
+	switch(telegram.getState())
+	{
+	case UNREGISTERED:
+	case REGISTERED:
+	    prefix = "?? ";
+	    break;
+	case READY_FOR_AUTHORIZATION:
+	    prefix = "...";
+	    break;
+	default:
+	    prefix = "";
+	}
+	return prefix + Base.getPhoneDesignation(sett.getPhone(""));
     }
 }
