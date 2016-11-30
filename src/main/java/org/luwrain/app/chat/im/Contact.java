@@ -3,6 +3,9 @@ package org.luwrain.app.chat.im;
 
 public interface Contact
 {
-	MessageList getMessages();
-	Account getAccount();
+    Account getAccount();
+    Message[] getMessages();
+    void registerNewMessage(Message message);
+    int getUnreadCount();
+    void decreaseCount(int cnt);
 }

@@ -9,7 +9,6 @@ import org.luwrain.core.queries.*;
 import org.luwrain.app.chat.im.Account;
 import org.luwrain.app.chat.im.Contact;
 import org.luwrain.app.chat.im.Message;
-import org.luwrain.app.chat.im.MessageList;
 import org.luwrain.controls.*;
 
 class ChatArea extends NavigationArea implements  EmbeddedEditLines
@@ -40,7 +39,7 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 	    return 2;
     	if (contact.getMessages() == null) 
 return 2;
-	return contact.getMessages().lastMessages().size() + 2;
+	return contact.getMessages().length + 2;
     }
 
     @Override public String getLine(int index)
@@ -49,11 +48,9 @@ return 2;
 return "";
     	if (contact.getMessages()==null) 
 return "";
-    	if (contact.getMessages().lastMessages()==null) 
-	    return "";
-	if (index < contact.getMessages().lastMessages().size())
-	    return contact.getMessages().lastMessages().get(index).getMessage();
-	if (index == contact.getMessages().lastMessages().size())
+	if (index < contact.getMessages().length)
+	    return contact.getMessages()[index].getMessage();
+	if (index == contact.getMessages().length)
 	    return enteringPrefix + enteringText;
 	return "";
     }
@@ -112,7 +109,7 @@ return "";
 	currentAccount.sendNewMessage(enteringText, contact);
 	enteringText = "";
 	environment.onAreaNewContent(this);
-	setHotPoint(enteringPrefix.length(), contact.getMessages().lastMessages().size());
+	setHotPoint(enteringPrefix.length(), contact.getMessages().length);
 	return true;
     }
 
@@ -122,8 +119,8 @@ return "";
 return;
 		if (contact.getMessages() == null) 
 return;
-		Log.debug("chat", "setting chat area edit at " + enteringPrefix.length() + "," + contact.getMessages().lastMessages().size());
-	edit.setNewPos(enteringPrefix.length(), contact.getMessages().lastMessages().size());
+		Log.debug("chat", "setting chat area edit at " + enteringPrefix.length() + "," + contact.getMessages().length);
+	edit.setNewPos(enteringPrefix.length(), contact.getMessages().length);
     }
 
 void setCurrentContact(Account account, Contact contact)

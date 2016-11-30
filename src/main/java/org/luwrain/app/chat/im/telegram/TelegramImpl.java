@@ -440,7 +440,7 @@ catch (Exception e)
 	    {
 		final TLUser u=(TLUser)o;
 		final TelegramContactImpl contact=new TelegramContactImpl(tAccount){};
-		contact.init(u.getAccessHash(),u.getId(),new TelegramMessageListImpl());
+		contact.init(u.getAccessHash(),u.getId());
 		contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
 		getEvents().onNewContact(contact);	
 	    }

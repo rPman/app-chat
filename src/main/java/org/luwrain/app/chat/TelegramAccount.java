@@ -63,7 +63,7 @@ TelegramAccountListener listener)
 					}
 					@Override public void onNewMessage(Message message,Contact recipient)
 					{
-					    recipient.getMessages().lastMessages().add(message);
+					    recipient.registerNewMessage(message);
 					    listener.onNewMessage();
 					}
 					@Override public void onBeginAddingContact()
@@ -104,7 +104,7 @@ private void receiveNewMessageImpl(String message,int date,int userId)
 			if (contact.getUserId() == userId)
 			{
 				TelegramMessageImpl msg=new TelegramMessageImpl(message,new Date(),contact);
-				contact.getMessages().lastMessages().add(msg);
+				contact.registerNewMessage(msg);
 listener.onNewMessage();
 				return;
 			}
