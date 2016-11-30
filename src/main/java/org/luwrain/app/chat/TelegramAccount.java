@@ -14,7 +14,7 @@ class TelegramAccount implements Account
     private final Listener listener;
     private final Telegram telegram;
 
-	private final LinkedList<Contact> contacts = new LinkedList<Contact>();
+	private final LinkedList<TelegramContactImpl> contacts = new LinkedList<TelegramContactImpl>();
 
     TelegramAccount(Luwrain luwrain, Settings.Telegram sett, 
 		    Listener listener)
@@ -48,7 +48,8 @@ class TelegramAccount implements Account
 					@Override public void onNewContact(Contact contact)
 					{
 					    NullCheck.notNull(contact, "contact");
-					    contacts.add(contact);
+					    if (contact instanceof TelegramContactImpl)
+						contacts.add((TelegramContactImpl)contact);
 					}
 					@Override public void onError(String message)
 					{
@@ -84,40 +85,39 @@ onFinished.run();
 	return contacts.toArray(new Contact[contacts.size()]);
     }
 
-private void onIncomingMessageImpl(String text,int date,int userId)
+    private void onIncomingMessageImpl(String text,int date,int userId)
+    {
+	NullCheck.notNull(text, "text");
+	for(TelegraphContactImpl c: contacts)
 	{
-	    NullCheck.notNull(text, "text");
-	    for(Contact c: contacts)
+	    if (c.getUserId() == userId)
 	    {
-		TelegramContactImpl contact=(TelegramContactImpl)c;
-		if (contact.getUserId() == userId)
-		{
-		    final Message msg=new Message(text, new Date(),contact);
-		    contact.registerNewMessage(msg);
-		    luwrain.playSound(Sounds.CHAT_MESSAGE);
-		    listener.refreshTree();
-		    listener.refreshChatArea();
-		    return;
-		}
+		final Message msg=new Message(text, new Date(),contact);
+		c.registerNewMessage(msg);
+		luwrain.playSound(Sounds.CHAT_MESSAGE);
+		listener.refreshTree();
+		listener.refreshChatArea();
+		return;
 	    }
+	}
 	    luwrain.message("Unknown contact " + text);
-	}
+    }
 
-	@Override public void sendMessage(String text,Contact contact)
-	{
-	    NullCheck.notNull(text, "text");
-	    NullCheck.notNull(contact, "contact");
-	    Log.debug("chat-telegram", "sending \"" + text + "\' to " + contact);
-		TelegramContactImpl tcontact=(TelegramContactImpl)contact;
-		telegram.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
-	}
+    @Override public void sendMessage(String text,Contact contact)
+    {
+	NullCheck.notNull(text, "text");
+	NullCheck.notNull(contact, "contact");
+	Log.debug("chat-telegram", "sending \"" + text + "\' to " + contact);
+	TelegramContactImpl tcontact=(TelegramContactImpl)contact;
+	telegram.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
+    }
 
     @Override public void addContact(String phone, String firstName,
 				     String lastName, Runnable onFinished)
     {
 	telegram.addNewContact(phone, firstName, lastName, ()->luwrain.runInMainThread(()->{
 		    telegram.getContacts();		
-		onFinished.run();
+		    onFinished.run();
 		}));
     }
 
