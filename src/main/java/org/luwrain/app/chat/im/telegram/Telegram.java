@@ -57,7 +57,7 @@ import org.telegram.tl.TLVector;
 import org.luwrain.app.chat.TelegramAccount;
 import org.luwrain.app.chat.Settings;
 
-public class TelegramImpl
+public class Telegram
 {
     private enum Task {SIGN_UP, SIGN_IN, MIGRATE, NONE};
 
@@ -102,7 +102,7 @@ public class TelegramImpl
 	return null;
     }
 
-    public TelegramImpl(Config config, Events events,
+    public Telegram(Config config, Events events,
 TelegramAccount tAccount, Settings.Telegram sett)
     {
 	NullCheck.notNull(config, "config");
@@ -365,7 +365,7 @@ private Events getEvents()
 
 	private void ImportAuthorization() throws Exception
 	{
-		final TelegramImpl that = this;
+	    //		final TelegramImpl that = this;
 		  TLRequestAuthImportAuthorization impauth=new  TLRequestAuthImportAuthorization(); 
 		  impauth.setId(197321144);
 		  try {
@@ -391,7 +391,7 @@ events.onError(e.getMessage());
 
 	private void ExportAuthorization() throws Exception
 	{
-		final TelegramImpl that = this;
+	    //		final TelegramImpl that = this;
 		final TLRequestAuthExportAuthorization expauth = new TLRequestAuthExportAuthorization();
 		expauth.setDcId(tlconfig.getThisDc());
 		try {
@@ -407,12 +407,12 @@ events.onError(e.getMessage());
 
 	private void signIn(String code,String hash) throws Exception
 	{
-		final TelegramImpl that = this;
+	    //		final TelegramImpl that = this;
 		Log.debug("chat-telegram", "signIn(" + code + ", " + hash + ")");
 		final TLRequestAuthSignIn sign = new TLRequestAuthSignIn();
 		sign.setPhoneCode(code);
 		sign.setPhoneCodeHash(hash);
-		sign.setPhoneNumber(that.config.phone);
+		sign.setPhoneNumber(config.phone);
 		try {
 		    auth = api.doRpcCallNonAuth(sign, TIMEOUT, api.getState().getPrimaryDc());
 		} 

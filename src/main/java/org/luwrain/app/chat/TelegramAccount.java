@@ -12,12 +12,12 @@ public class TelegramAccount implements Account
     private final Luwrain luwrain;
     private final Settings.Telegram sett;
     private final TelegramAccountListener listener;
-    private final TelegramImpl messenger;
+    private final Telegram telegram;
 
 	private final LinkedList<Contact> contacts = new LinkedList<Contact>();
 
     TelegramAccount(Luwrain luwrain, Settings.Telegram sett, 
-TelegramAccountListener listener)
+		    TelegramAccountListener listener)
     {
 	NullCheck.notNull(luwrain, "luwrain");
 	NullCheck.notNull(sett, "sett");
@@ -29,37 +29,36 @@ TelegramAccountListener listener)
 	config.firstName = sett.getFirstName("");
 	config.lastName = sett.getLastName("");
 	config.phone = sett.getPhone("");
-	messenger =new TelegramImpl(config,
+	telegram = new Telegram(config,
 				    new Events(){
-@Override public void onIncomingMessage(String text, int date, int userId)
+					@Override public void onIncomingMessage(String text, int date, int userId)
 					{
 					    NullCheck.notNull(text, "text");
-					    luwrain.runInMainThread(()->					    receiveNewMessageImpl(text, date, userId));
+					    luwrain.runInMainThread(()->					    onIncomingMessageImpl(text, date, userId));
 					}
 					@Override public void onWarning(String message)
 					{
 					    NullCheck.notNull(message, "message");
 					    Log.warning("chat-telegram", message);
 					}
+					@Override public void onBeginAddingContact()
+					{
+					    contacts.clear();			
+					}
 					@Override public void onNewContact(Contact contact)
 					{
 					    NullCheck.notNull(contact, "contact");
-					    Log.debug("chat-telegram", "receiving contact " + contact);
 					    contacts.add(contact);
 					}
 					@Override public void onError(String message)
 					{
 					    NullCheck.notNull(message, "message");
 					    Log.error("chat-telegram", message);
+					    luwrain.runInMainThread(()->luwrain.message(message, Luwrain.MESSAGE_ERROR));
 					}
 					@Override public String askTwoPassAuthCode()
 					{
 					    return Popups.simple(luwrain, "Подключение к учетной записи", "Введите PIN:", "");
-					}
-					@Override public void onBeginAddingContact()
-					{
-					    Log.debug("chat-telegram", "starting receiving contacts");
-					    contacts.clear();			
 					}
 				    },this, sett);
     }
@@ -68,15 +67,15 @@ TelegramAccountListener listener)
 	{	
 	    NullCheck.notNull(onFinished, "onFinished");
 	    new Thread(()->{
-		    messenger.open();
+		    telegram.open();
 		    luwrain.runInMainThread(onFinished);
 }).start();
 	}
 
     @Override public void activate(Runnable onFinished)
     {
-messenger.connect();
-messenger.getContacts();
+	telegram.connect();
+telegram.getContacts();
 onFinished.run();
     }
 
@@ -85,7 +84,7 @@ onFinished.run();
 	return contacts.toArray(new Contact[contacts.size()]);
     }
 
-private void receiveNewMessageImpl(String message,int date,int userId)
+private void onIncomingMessageImpl(String message,int date,int userId)
 	{
 		//TelegramMessageImpl message=new TelegramMessageImpl();
 		for(Contact c:contacts)
@@ -105,36 +104,26 @@ listener.onUnknownContactReciveMessage(message);
 //		System.out.println("пришло сообщение от неизвестного userId");
 	}
 
-//	private void addNewContact(int userId)
-//	{
-//		TelegramImpl timp=(TelegramImpl)messenger;
-//		timp.addNewContact(userId);
-//		
-//	}
-
-
-
 	@Override public void sendMessage(String text,Contact contact)
 	{
 	    NullCheck.notNull(text, "text");
 	    NullCheck.notNull(contact, "contact");
 	    Log.debug("chat-telegram", "sending \"" + text + "\' to " + contact);
-		TelegramImpl timp=(TelegramImpl)messenger;
 		TelegramContactImpl tcontact=(TelegramContactImpl)contact;
-		timp.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
+		telegram.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
 	}
 
     @Override public void addContact(String phone, String firstName,
 				     String lastName, Runnable onFinished)
     {
-	messenger.addNewContact(phone, firstName, lastName, ()->luwrain.runInMainThread(()->{
-		messenger.getContacts();		
+	telegram.addNewContact(phone, firstName, lastName, ()->luwrain.runInMainThread(()->{
+		    telegram.getContacts();		
 		onFinished.run();
 		}));
     }
 
     @Override public String toString()
     {
-	return messenger.getState() + Base.getPhoneDesignation(sett.getPhone(""));
+	return telegram.getState() + Base.getPhoneDesignation(sett.getPhone(""));
     }
 }
