@@ -9,7 +9,7 @@ import org.luwrain.popups.Popups;
 import org.luwrain.controls.*;
 import org.luwrain.app.chat.im.*;
 
-class ChatApp implements Application, MonoApp, TelegramAccountListener
+class ChatApp implements Application, MonoApp, Listener
 {
     private Luwrain luwrain;
     private final Base base = new Base();
@@ -125,15 +125,13 @@ chatArea.setEnteringPrefix("proba>");
 	return false;
     }
 
-    @Override public void onNewMessage()
+    @Override public void refreshTree()
     {
-	luwrain.onAreaNewContent(chatArea);
+	treeArea.refresh();
     }
 
-    @Override public void onUnknownContactReciveMessage(String message)
+    @Override public void refreshChatArea()
     {
-	luwrain.message("Неизвестный контакт: "+message);
-	luwrain.onAreaNewContent(treeArea);
     }
 
     private void open()

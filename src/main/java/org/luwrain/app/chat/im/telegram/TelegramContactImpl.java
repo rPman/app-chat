@@ -7,7 +7,7 @@ import org.luwrain.app.chat.im.*;
 
 public class TelegramContactImpl implements Contact
 {
-	long accessHash;
+    long accessHash;
 	int userId;
 
 	String firstName;

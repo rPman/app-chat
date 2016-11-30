@@ -7,17 +7,17 @@ import org.luwrain.popups.Popups;
 import org.luwrain.app.chat.im.*;
 import org.luwrain.app.chat.im.telegram.*;
 
-public class TelegramAccount implements Account
+class TelegramAccount implements Account
 {
     private final Luwrain luwrain;
     private final Settings.Telegram sett;
-    private final TelegramAccountListener listener;
+    private final Listener listener;
     private final Telegram telegram;
 
 	private final LinkedList<Contact> contacts = new LinkedList<Contact>();
 
     TelegramAccount(Luwrain luwrain, Settings.Telegram sett, 
-		    TelegramAccountListener listener)
+		    Listener listener)
     {
 	NullCheck.notNull(luwrain, "luwrain");
 	NullCheck.notNull(sett, "sett");
@@ -84,24 +84,22 @@ onFinished.run();
 	return contacts.toArray(new Contact[contacts.size()]);
     }
 
-private void onIncomingMessageImpl(String message,int date,int userId)
+private void onIncomingMessageImpl(String text,int date,int userId)
 	{
-		//TelegramMessageImpl message=new TelegramMessageImpl();
-		for(Contact c:contacts)
+	    NullCheck.notNull(text, "text");
+	    for(Contact c: contacts)
+	    {
+		TelegramContactImpl contact=(TelegramContactImpl)c;
+		if (contact.getUserId() == userId)
 		{
-			TelegramContactImpl contact=(TelegramContactImpl)c;
-			if (contact.getUserId() == userId)
-			{
-				TelegramMessageImpl msg=new TelegramMessageImpl(message,new Date(),contact);
-				contact.registerNewMessage(msg);
-listener.onNewMessage();
-				return;
-			}
+		    final TelegramMessageImpl msg=new TelegramMessageImpl(text, new Date(),contact);
+		    contact.registerNewMessage(msg);
+		    listener.refreshTree();
+		    listener.refreshChatArea();
+		    return;
 		}
-		//
-//		addNewContact(userId);
-listener.onUnknownContactReciveMessage(message);
-//		System.out.println("пришло сообщение от неизвестного userId");
+	    }
+	    luwrain.message("Unknown contact " + text);
 	}
 
 	@Override public void sendMessage(String text,Contact contact)

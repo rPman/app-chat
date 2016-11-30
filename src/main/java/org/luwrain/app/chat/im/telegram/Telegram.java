@@ -54,7 +54,6 @@ import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLBytes;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
-import org.luwrain.app.chat.TelegramAccount;
 import org.luwrain.app.chat.Settings;
 
 public class Telegram
@@ -76,7 +75,7 @@ public class Telegram
     private TelegramApi api;
     private TLAuthorization auth;
     TLConfig tlconfig;
-    private final Account tAccount;
+    private final Account account;
     private final MemoryApiState memstate;
 
     TLCheckedPhone checked=null;
@@ -84,32 +83,15 @@ public class Telegram
     private Task task;
     private State state = State.none;
 
-    private static Object autorun=autoRun(); 
-    private static Object autoRun()
-    {
-	org.telegram.mtproto.log.Logger.registerInterface(new org.telegram.mtproto.log.LogInterface() {
-		public void w(String tag, String message) {}
-		public void d(String tag, String message) {}
-		public void e(String tag, String message) {            }
-		public void e(String tag, Throwable t) {}
-	    });
-	org.telegram.api.engine.Logger.registerInterface(new org.telegram.api.engine.LoggerInterface() {
-		public void w(String tag, String message) {}
-		public void d(String tag, String message) {}
-		public void e(String tag, String message) {}
-		public void e(String tag, Throwable t) {}
-	    });
-	return null;
-    }
-
     public Telegram(Config config, Events events,
-TelegramAccount tAccount, Settings.Telegram sett)
+		    Account account, Settings.Telegram sett)
     {
 	NullCheck.notNull(config, "config");
 	NullCheck.notNull(events, "events");
 	NullCheck.notNull(sett, "sett");
+	NullCheck.notNull(account, "account");
 	this.config = config;
-	this.tAccount=tAccount;
+	this.account = account;
 	this.events = events;
 	this.sett = sett;
     this.memstate = new MemoryApiState("Telegram."+config.phone+".raw");
@@ -439,7 +421,7 @@ catch (Exception e)
 	    for(TLAbsUser o:rescnts.getUsers())
 	    {
 		final TLUser u=(TLUser)o;
-		final TelegramContactImpl contact=new TelegramContactImpl(tAccount){};
+		final TelegramContactImpl contact = new TelegramContactImpl(account){};
 		contact.init(u.getAccessHash(),u.getId());
 		contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
 		getEvents().onNewContact(contact);	

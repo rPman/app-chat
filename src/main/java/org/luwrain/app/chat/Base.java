@@ -13,15 +13,15 @@ class Base
     private Luwrain luwrain;
     private TreeModelSource treeModelSource;
     private CachedTreeModel treeModel;
-    private TelegramAccountListener telegramAccountListener;
+    private Listener listener;
     private Account[] accounts;
 
-    boolean init(Luwrain luwrain, TelegramAccountListener telegramAccountListener)
+    boolean init(Luwrain luwrain, Listener listener)
     {
 	NullCheck.notNull(luwrain, "luwrain");
-	NullCheck.notNull(telegramAccountListener, "telegramAccountListener");
+	NullCheck.notNull(listener, "listener");
 	this.luwrain = luwrain;
-	this.telegramAccountListener = telegramAccountListener;
+	this.listener = listener;
 	this.accounts = loadAccounts();
 	treeModelSource = new TreeModelSource(this, "Учётные записи");//FIXME:strings
 	treeModel = new CachedTreeModel(treeModelSource);
@@ -48,7 +48,7 @@ class Base
 	    case "telegram":
 		{
 		    final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), accountPath );
-		    res.add(new TelegramAccount(luwrain, sett, telegramAccountListener));
+		    res.add(new TelegramAccount(luwrain, sett, listener));
 		}
 		break;
 	    default:
