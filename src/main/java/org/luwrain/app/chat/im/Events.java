@@ -23,8 +23,6 @@ public interface Events
      */
 
 
-	void onNewMessage(Message message,Contact recipient);
-
 /** вызывается перед добавлением контактов в список для очитски*/
 	void onBeginAddingContact();
 

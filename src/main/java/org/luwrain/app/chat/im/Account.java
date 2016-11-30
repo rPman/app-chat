@@ -6,6 +6,6 @@ public interface Account
     Contact[] getContacts();
     void open(Runnable onFinished);
     void activate(Runnable onFinished);
-    Message sendNewMessage(String text, Contact contact);
+    void sendMessage(String text, Contact contact);
     void addContact(String phone, String firstName, String lastName, Runnable finished);
 }

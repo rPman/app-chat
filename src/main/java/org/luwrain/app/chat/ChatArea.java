@@ -106,7 +106,7 @@ return "";
     {
 	if (enteringText.isEmpty())
 	    return false;
-	currentAccount.sendNewMessage(enteringText, contact);
+	currentAccount.sendMessage(enteringText, contact);
 	enteringText = "";
 	environment.onAreaNewContent(this);
 	setHotPoint(enteringPrefix.length(), contact.getMessages().length);

@@ -1,11 +1,9 @@
 package org.luwrain.app.chat;
 
-import java.util.Date;
-import java.util.Vector;
+import java.util.*;
 
 import org.luwrain.core.*;
 import org.luwrain.popups.Popups;
-
 import org.luwrain.app.chat.im.*;
 import org.luwrain.app.chat.im.telegram.*;
 
@@ -13,13 +11,10 @@ public class TelegramAccount implements Account
 {
     private final Luwrain luwrain;
     private final Settings.Telegram sett;
-    private TelegramAccountListener listener;
-
+    private final TelegramAccountListener listener;
     private final TelegramImpl messenger;
-	private final Vector<Contact> contacts = new Vector<Contact>();
 
-	// если любой контакт null, то это мы сами
-	private Contact me=null;
+	private final LinkedList<Contact> contacts = new LinkedList<Contact>();
 
     TelegramAccount(Luwrain luwrain, Settings.Telegram sett, 
 TelegramAccountListener listener)
@@ -60,11 +55,6 @@ TelegramAccountListener listener)
 					@Override public String askTwoPassAuthCode()
 					{
 					    return Popups.simple(luwrain, "Подключение к учетной записи", "Введите PIN:", "");
-					}
-					@Override public void onNewMessage(Message message,Contact recipient)
-					{
-					    recipient.registerNewMessage(message);
-					    listener.onNewMessage();
 					}
 					@Override public void onBeginAddingContact()
 					{
@@ -124,7 +114,7 @@ listener.onUnknownContactReciveMessage(message);
 
 
 
-	@Override public Message sendNewMessage(String text,Contact contact)
+	@Override public void sendMessage(String text,Contact contact)
 	{
 	    NullCheck.notNull(text, "text");
 	    NullCheck.notNull(contact, "contact");
@@ -132,8 +122,6 @@ listener.onUnknownContactReciveMessage(message);
 		TelegramImpl timp=(TelegramImpl)messenger;
 		TelegramContactImpl tcontact=(TelegramContactImpl)contact;
 		timp.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
-		Message message=new TelegramMessageImpl(text,new Date(),me);
-		return message;
 	}
 
     @Override public void addContact(String phone, String firstName,
