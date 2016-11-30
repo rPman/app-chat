@@ -49,7 +49,7 @@ return "";
     	if (contact.getMessages()==null) 
 return "";
 	if (index < contact.getMessages().length)
-	    return contact.getMessages()[index].getMessage();
+	    return contact.getMessages()[index].text;
 	if (index == contact.getMessages().length)
 	    return enteringPrefix + enteringText;
 	return "";

@@ -92,8 +92,9 @@ private void onIncomingMessageImpl(String text,int date,int userId)
 		TelegramContactImpl contact=(TelegramContactImpl)c;
 		if (contact.getUserId() == userId)
 		{
-		    final TelegramMessageImpl msg=new TelegramMessageImpl(text, new Date(),contact);
+		    final Message msg=new Message(text, new Date(),contact);
 		    contact.registerNewMessage(msg);
+		    luwrain.playSound(Sounds.CHAT_MESSAGE);
 		    listener.refreshTree();
 		    listener.refreshChatArea();
 		    return;
