@@ -42,7 +42,7 @@ class SettingsFactory implements org.luwrain.cpanel.Factory
 	    if (base.getType("").toLowerCase().trim().equals("telegram"))
 	    {
 		final Settings.Telegram telegram = Settings.createTelegram(registry, path);
-		res.add(new SettingsTelegramElement(parent, telegram, telegram.getFirstName("") + " " + telegram.getLastName("")));
+		res.add(new SettingsTelegramElement(parent, telegram, telegram.getName("")));
 	    }
 	}
 	return res.toArray(new Element[res.size()]);
@@ -72,30 +72,31 @@ class SettingsFactory implements org.luwrain.cpanel.Factory
     {
 	NullCheck.notNull(controlPanel, "controlPanel");
 	NullCheck.notNull(event, "event");
-	if (ActionEvent.isAction(event, "add-twitter-account"))
+	if (ActionEvent.isAction(event, "add-chat-account"))
 	{
-
 	    /*
-	    final String name = Popups.simple(luwrain, strings.addAccountPopupName(), strings.addAccountPopupPrefix(), "");
-	    if (name == null || name.trim().isEmpty())
-		return true;
-	    if (name.indexOf("/") >= 0)
-	    {
-		luwrain.message(strings.invalidAccountName(), Luwrain.MESSAGE_ERROR);
-	    }
-	    final Registry registry = controlPanel.getCoreInterface().getRegistry();
-	    final String path = Registry.join(Settings.ACCOUNTS_PATH, name);
-	    if (registry.hasDirectory(path))
-	    {
-		luwrain.message(strings.accountAlreadyExists(name), Luwrain.MESSAGE_ERROR);
-		return true;
-	    }
-	    registry.addDirectory(path);
-	    controlPanel.refreshSectionsTree();
-	    luwrain.message(strings.accountAddedSuccessfully(name), Luwrain.MESSAGE_OK);
-	    */
+	final String jabber = "Jabber";
+	final String telegram = "Telegram";
+	final Object res = Popups.fixedList(luwrain, "Выберите тип новой учётной записи:", new String[]{jabber, telegram});
+	if (res == null)
 	    return true;
+	    */
+	    final String name = Popups.simple(luwrain, "Новая учётная запись", "Имя новой учётной записи:", "");
+	    if (name == null || name.trim().isEmpty())
+	    return true;
+	    final Registry registry = controlPanel.getCoreInterface().getRegistry();
+	registry.addDirectory(Settings.ACCOUNTS_PATH);
+	final int id = Registry.nextFreeNum(luwrain.getRegistry(), Settings.ACCOUNTS_PATH);
+	final String accountPath = Registry.join(Settings.ACCOUNTS_PATH, String.valueOf(id));
+	registry.addDirectory(accountPath);
+	final Settings.Telegram sett = Settings.createTelegram(registry, accountPath);
+	sett.setType("Telegram");
+	sett.setName(name);
+	controlPanel.refreshSectionsTree();
+	return true;
 	}
+
+	/*
 	if (ActionEvent.isAction(event, "delete-twitter-account"))
 	{
 	    NullCheck.notNull(accountName, "accountName");
@@ -113,8 +114,6 @@ class SettingsFactory implements org.luwrain.cpanel.Factory
 	}
 	return false;
 	    */
-	    return false;
-	}
 	return false;
 }
 }

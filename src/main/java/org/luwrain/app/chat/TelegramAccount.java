@@ -11,6 +11,7 @@ class TelegramAccount implements Account
 {
     private final Luwrain luwrain;
     private final Settings.Telegram sett;
+    private final String title;
     private final Listener listener;
     private final Telegram telegram;
 
@@ -24,6 +25,7 @@ class TelegramAccount implements Account
 	NullCheck.notNull(listener, "listener");
 	this.luwrain=luwrain;
 	this.sett = sett;
+	this.title = sett.getName("").trim().isEmpty()?"---":sett.getName("").trim();
 	this.listener = listener;
 	final Config config = new Config();
 	config.firstName = sett.getFirstName("");
@@ -118,9 +120,10 @@ listener.refreshTree();
     @Override public void addContact(String phone, String firstName,
 				     String lastName, Runnable onFinished)
     {
+	Log.debug("chat-telegram", "adding contact " + phone);
 	telegram.addNewContact(phone, firstName, lastName, ()->luwrain.runInMainThread(()->{
 		    telegram.getContacts();		
-		    onFinished.run();
+		    listener.refreshTree();
 		}));
     }
 
@@ -139,6 +142,6 @@ listener.refreshTree();
 	default:
 	    prefix = "";
 	}
-	return prefix + Base.getPhoneDesignation(sett.getPhone(""));
+	return prefix + title;
     }
 }

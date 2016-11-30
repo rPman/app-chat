@@ -26,7 +26,13 @@ class SettingsTelegramForm extends FormArea implements SectionArea
 
     private void fillForm()
     {
+	addStatic("type", "Тип:Телеграм");
+	addEdit("name", "Имя учётной записи:", telegram.getName(""));
 	addEdit("phone", "Номер телефона:", telegram.getPhone(""));
+	addEdit("first-name", "Имя владельца:", telegram.getFirstName(""));
+	addEdit("last-name", "Фамилия владельца:", telegram.getLastName(""));
+	addEdit("auth-sms-code", "Проверочный код:", telegram.getAuthSmsCode(""));
+	addEdit("auth-phone-hash", "Шифр сервера:", telegram.getAuthPhoneHash(""));
     }
 
     @Override public boolean saveSectionData()

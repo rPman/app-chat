@@ -14,6 +14,8 @@ public interface Settings
 
     public interface Telegram extends Base
     {
+	String getName(String defValue);
+	void setName(String value);
 	void setType(String val);
 	String getFirstName(String def);
 	String getLastName(String def);

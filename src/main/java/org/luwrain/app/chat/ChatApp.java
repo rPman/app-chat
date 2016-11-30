@@ -116,10 +116,6 @@ chatArea.setEnteringPrefix("proba>");
     private boolean onTreeAction(EnvironmentEvent event)
     {
 	NullCheck.notNull(event, "event");
-	if (ActionEvent.isAction(event, "add-account"))
-	    return actions.onAddAccount(treeArea);
-	//	if (ActionEvent.isAction(event, "select-item"))
-	//	    return actions.onSelectItem(treeArea, chatArea);
 	if (ActionEvent.isAction(event, "add-contact"))
 	    return actions.onAddContact(treeArea, chatArea);
 	return false;
