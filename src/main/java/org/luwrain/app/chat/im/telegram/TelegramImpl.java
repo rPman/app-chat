@@ -134,8 +134,9 @@ TelegramAccount tAccount, Settings.Telegram sett)
 		    Log.debug("chat-telegram", "onUpdate:" + updates.getClass().getName()+" "+updates);
 		    if (updates instanceof TLUpdateShortMessage) 
 			{
-				TLUpdateShortMessage updatesh=(TLUpdateShortMessage)updates;
-				events.receiveNewMessage(updatesh.getMessage(),updatesh.getDate(),updatesh.getUserId()); 
+				final TLUpdateShortMessage message = (TLUpdateShortMessage)updates;
+				Log.debug("chat-telegram", "message:" + message.getMessage());
+				events.onIncomingMessage(message.getMessage(), message.getDate(), message.getUserId()); 
 			}
 		}
 	    });
@@ -294,7 +295,7 @@ if (e.getErrorTag().startsWith("USER_MIGRATE_"))
 	    onError(e, "TLRequestAuthSendCode");
 	    return;
 	}
-	final String answer = events.askTwoPassAuthCode("Enter the code from SMS:");
+	final String answer = events.askTwoPassAuthCode();
 	if (answer == null || answer.trim().isEmpty())
 	    return;
 	Log.debug("chat-telegram", "phone code hash:" + phoneCodeHash);

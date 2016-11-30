@@ -36,9 +36,10 @@ TelegramAccountListener listener)
 	config.phone = sett.getPhone("");
 	messenger =new TelegramImpl(config,
 				    new Events(){
-@Override public void receiveNewMessage(String message,int date,int userId)
+@Override public void onIncomingMessage(String text, int date, int userId)
 					{
-					    receiveNewMessageImpl(message, date, userId);
+					    NullCheck.notNull(text, "text");
+					    luwrain.runInMainThread(()->					    receiveNewMessageImpl(text, date, userId));
 					}
 					@Override public void onWarning(String message)
 					{
@@ -56,10 +57,9 @@ TelegramAccountListener listener)
 					    NullCheck.notNull(message, "message");
 					    Log.error("chat-telegram", message);
 					}
-					@Override public String askTwoPassAuthCode(String message)
+					@Override public String askTwoPassAuthCode()
 					{
-					    NullCheck.notEmpty(message, "message");
-					    return Popups.simple(luwrain, "Подключение к учетной записи", message, "");
+					    return Popups.simple(luwrain, "Подключение к учетной записи", "Введите PIN:", "");
 					}
 					@Override public void onNewMessage(Message message,Contact recipient)
 					{
@@ -101,7 +101,7 @@ private void receiveNewMessageImpl(String message,int date,int userId)
 		for(Contact c:contacts)
 		{
 			TelegramContactImpl contact=(TelegramContactImpl)c;
-			if (contact.getUserId()==userId)
+			if (contact.getUserId() == userId)
 			{
 				TelegramMessageImpl msg=new TelegramMessageImpl(message,new Date(),contact);
 				contact.getMessages().lastMessages().add(msg);

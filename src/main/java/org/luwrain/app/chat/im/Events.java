@@ -16,19 +16,23 @@ public interface Events
      * Событие вызывается когда сервер требует кода двухфакторной авторизации
      * @param message необязательное сообщение
      */
-    String askTwoPassAuthCode(String message);
+    String askTwoPassAuthCode();
 
     /**
      * Событие вызывается при окончании успешной авторизации
      */
+
+
+	void onNewMessage(Message message,Contact recipient);
+
+/** вызывается перед добавлением контактов в список для очитски*/
+	void onBeginAddingContact();
 
     /**
      * Событие вызывается на получение результата поиска
      */
     void onNewContact(Contact contact);
 
-	void onNewMessage(Message message,Contact recipient);
-/** вызывается перед добавлением контактов в список для очитски*/
-	void onBeginAddingContact();
-    void receiveNewMessage(String message,int date,int userId);
+
+void onIncomingMessage(String text, int date, int userId);
 }
