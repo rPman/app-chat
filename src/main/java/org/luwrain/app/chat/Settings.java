@@ -12,7 +12,7 @@ public interface Settings
 	String getType(String def);
     }
 
-    public interface Telegram
+    public interface Telegram extends Base
     {
 	void setType(String val);
 	String getFirstName(String def);
@@ -20,8 +20,8 @@ public interface Settings
 	String getPhone(String def);
 	String getAuthSmsCode(String def);
 	String getAuthPhoneHash(String def);
-	boolean getAutoConnect(boolean def);
-	void setAutoConnect(boolean val);
+	//	boolean getAutoConnect(boolean def);
+	//	void setAutoConnect(boolean val);
 	void setFirstName(String val);
 	void setLastName(String val);
 	void setPhone(String val);
@@ -46,6 +46,12 @@ public interface Settings
 	void setType(String val);
     }
 
+    static Base createBase(Registry registry, String path)
+    {
+	NullCheck.notNull(registry, "registry");
+	NullCheck.notEmpty(path, "path");
+	return RegistryProxy.create(registry, path, Base.class);
+    }
     static Telegram createTelegram(Registry registry, String path)
     {
 	NullCheck.notNull(registry, "registry");
