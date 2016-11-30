@@ -132,6 +132,7 @@ chatArea.setEnteringPrefix("proba>");
 
     @Override public void refreshChatArea()
     {
+	chatArea.refresh();
     }
 
     private void open()

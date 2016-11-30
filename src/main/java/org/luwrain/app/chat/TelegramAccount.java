@@ -65,13 +65,13 @@ class TelegramAccount implements Account
     }
 
     @Override public void open(Runnable onFinished)
-	{	
-	    NullCheck.notNull(onFinished, "onFinished");
-	    new Thread(()->{
-		    telegram.open();
+    {	
+	NullCheck.notNull(onFinished, "onFinished");
+	new Thread(()->{
+		telegram.open();
 		    luwrain.runInMainThread(onFinished);
-}).start();
-	}
+	}).start();
+    }
 
     @Override public void activate(Runnable onFinished)
     {
@@ -88,11 +88,11 @@ onFinished.run();
     private void onIncomingMessageImpl(String text,int date,int userId)
     {
 	NullCheck.notNull(text, "text");
-	for(TelegraphContactImpl c: contacts)
+	for(TelegramContactImpl c: contacts)
 	{
 	    if (c.getUserId() == userId)
 	    {
-		final Message msg=new Message(text, new Date(),contact);
+		final Message msg=new Message(text, new Date(), c);
 		c.registerNewMessage(msg);
 		luwrain.playSound(Sounds.CHAT_MESSAGE);
 		listener.refreshTree();
