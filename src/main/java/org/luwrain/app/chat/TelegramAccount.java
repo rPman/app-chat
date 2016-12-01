@@ -27,43 +27,39 @@ class TelegramAccount implements Account
 	this.sett = sett;
 	this.title = sett.getName("").trim().isEmpty()?"---":sett.getName("").trim();
 	this.listener = listener;
-	final Config config = new Config();
-	config.firstName = sett.getFirstName("");
-	config.lastName = sett.getLastName("");
-	config.phone = sett.getPhone("");
-	telegram = new Telegram(config,
-				    new Events(){
-					@Override public void onIncomingMessage(String text, int date, int userId)
-					{
-					    NullCheck.notNull(text, "text");
-					    luwrain.runInMainThread(()->					    onIncomingMessageImpl(text, date, userId));
-					}
-					@Override public void onWarning(String message)
-					{
-					    NullCheck.notNull(message, "message");
-					    Log.warning("chat-telegram", message);
-					}
-					@Override public void onBeginAddingContact()
-					{
-					    contacts.clear();			
-					}
-					@Override public void onNewContact(Contact contact)
-					{
-					    NullCheck.notNull(contact, "contact");
-					    if (contact instanceof TelegramContactImpl)
-						contacts.add((TelegramContactImpl)contact);
-					}
-					@Override public void onError(String message)
-					{
-					    NullCheck.notNull(message, "message");
-					    Log.error("chat-telegram", message);
-					    luwrain.runInMainThread(()->luwrain.message(message, Luwrain.MESSAGE_ERROR));
-					}
-					@Override public String askTwoPassAuthCode()
-					{
-					    return Popups.simple(luwrain, "Подключение к учетной записи", "Введите PIN:", "");
-					}
-				    },this, sett);
+	telegram = new Telegram(sett,
+	    new Events(){
+		@Override public void onIncomingMessage(String text, int date, int userId)
+		{
+		    NullCheck.notNull(text, "text");
+		    luwrain.runInMainThread(()->onIncomingMessageImpl(text, date, userId));
+		}
+		@Override public void onWarning(String message)
+		{
+		    NullCheck.notNull(message, "message");
+		    Log.warning("chat-telegram", message);
+		}
+		@Override public void onBeginAddingContact()
+		{
+		    contacts.clear();			
+		}
+		@Override public void onNewContact(Contact contact)
+		{
+		    NullCheck.notNull(contact, "contact");
+		    if (contact instanceof TelegramContactImpl)
+		    	contacts.add((TelegramContactImpl)contact);
+		}
+		@Override public void onError(String message)
+		{
+		    NullCheck.notNull(message, "message");
+		    Log.error("chat-telegram", message);
+		    luwrain.runInMainThread(()->luwrain.message(message, Luwrain.MESSAGE_ERROR));
+		}
+		@Override public String askTwoPassAuthCode()
+		{
+		    return Popups.simple(luwrain, "Подключение к учетной записи", "Введите PIN:", "");
+		}
+	    },this);
     }
 
     @Override public void open()
@@ -76,13 +72,27 @@ class TelegramAccount implements Account
 
     @Override public void activate()
     {
-	if (telegram.getState() == State.UNREGISTERED || telegram.getState() == State.REGISTERED)
-	    if (!Popups.confirmDefaultYes(luwrain, "Подключение новой учётной записи", "Учётная запись не подключена; для подключения вам будет выслан PIN-код, и открыто окно для его ввода. Вы хотите продолжить?"))
-		return;
+	switch(telegram.getState())
+	{
+		case UNREGISTERED:
+		case UNAUTHORIZED_NEEDSMS:
+		    if (!Popups.confirmDefaultYes(luwrain, "Подключение новой учётной записи", "Учётная запись не подключена; для подключения вам будет выслан PIN-код, и открыто окно для его ввода. Вы хотите продолжить?"))
+		    	return;
+		    break;
+		case UNAUTHORIZED:
+		//	// FIXME: make possible to break authorization
+			break;
+		case AUTHORIZED:
+			return;
+		case ERROR:
+		    if (!Popups.confirmDefaultYes(luwrain, "Подключение новой учётной записи", "Предыдущая попытка подключения провалилась; запросить PIN-кода, и открыто окно для его ввода. Вы хотите продолжить?"))
+		    	return;
+		    break;
+	}
 	telegram.connect();
-telegram.getContacts();
-luwrain.playSound(Sounds.DONE);
-listener.refreshTree();
+	telegram.getContacts();
+	luwrain.playSound(Sounds.DONE);
+	listener.refreshTree();
     }
 
     @Override public Contact[] getContacts()
@@ -133,15 +143,12 @@ listener.refreshTree();
 	final String prefix;
 	switch(telegram.getState())
 	{
-	case UNREGISTERED:
-	case REGISTERED:
-	    prefix = "?? ";
-	    break;
-	case READY_FOR_AUTHORIZATION:
-	    prefix = "...";
-	    break;
-	default:
-	    prefix = "";
+	case UNREGISTERED:			prefix = "SMS! "; break;
+	case UNAUTHORIZED_NEEDSMS:	prefix = "SMS? "; break;
+	case UNAUTHORIZED:			prefix = "..."; break;
+	case ERROR:					prefix = "! "; break;
+	case AUTHORIZED:			prefix = ""; break;
+	default:					prefix = "";
 	}
 	return prefix + title;
     }
