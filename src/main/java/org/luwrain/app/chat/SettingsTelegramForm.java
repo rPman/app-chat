@@ -37,6 +37,13 @@ class SettingsTelegramForm extends FormArea implements SectionArea
 
     @Override public boolean saveSectionData()
     {
+
+telegram.setName(getEnteredText("name"));
+telegram.setPhone(getEnteredText("phone"));
+telegram.setFirstName(getEnteredText("first-name"));
+telegram.setLastName(getEnteredText("last-name"));
+telegram.setAuthSmsCode(getEnteredText("auth-sms-code"));
+telegram.setAuthPhoneHash(getEnteredText("auth-phone-hash"));
 	return true;
     }
 

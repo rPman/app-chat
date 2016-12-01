@@ -134,6 +134,10 @@ void setCurrentContact(Contact contact)
 
     void refresh()
     {
+	messages = contact.getMessages();
+	if (messages == null)
+	    messages = new Message[0];
+	updateEditPos();
 	environment.onAreaNewContent(this);
     }
 

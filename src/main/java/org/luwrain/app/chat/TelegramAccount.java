@@ -99,7 +99,8 @@ listener.refreshTree();
 	    {
 		final Message msg=new Message(text, new Date(), c);
 		c.registerNewMessage(msg);
-		luwrain.playSound(Sounds.CHAT_MESSAGE);
+		//		luwrain.playSound(Sounds.CHAT_MESSAGE);
+		luwrain.message(text, Luwrain.MESSAGE_OK);
 		listener.refreshTree();
 		listener.refreshChatArea();
 		return;
