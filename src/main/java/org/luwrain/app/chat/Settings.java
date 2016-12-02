@@ -22,6 +22,7 @@ public interface Settings
 	String getPhone(String def);
 	String getAuthSmsCode(String def);
 	String getAuthPhoneHash(String def);
+	boolean getSmsVoice(boolean def);
 	//	boolean getAutoConnect(boolean def);
 	//	void setAutoConnect(boolean val);
 	void setFirstName(String val);
@@ -29,6 +30,7 @@ public interface Settings
 	void setPhone(String val);
 	void setAuthSmsCode(String val);
 	void setAuthPhoneHash(String val);
+	void setSmsVoice(boolean val);
     }
 
     interface Jabber

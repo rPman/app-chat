@@ -63,7 +63,7 @@ public class TelegramContactImpl implements Contact
 		return accessHash;
 	}
 
-@Override public void decreaseCount(int cnt)
+	@Override public void decreaseCount(int cnt)
     {
     }
 

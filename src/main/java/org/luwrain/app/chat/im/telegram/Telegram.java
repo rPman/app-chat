@@ -9,6 +9,7 @@ package org.luwrain.app.chat.im.telegram;
 //import java.util.concurrent.TimeoutException;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -32,7 +33,7 @@ import org.telegram.api.engine.TelegramApi;
 import org.telegram.api.functions.auth.TLRequestAuthCheckPhone;
 import org.telegram.api.functions.auth.TLRequestAuthExportAuthorization;
 import org.telegram.api.functions.auth.TLRequestAuthImportAuthorization;
-import org.telegram.api.functions.auth.TLRequestAuthSendCode;
+import org.telegram.api.functions.auth.TLRequestAuthSendCall;
 import org.telegram.api.functions.auth.TLRequestAuthSignIn;
 import org.telegram.api.functions.auth.TLRequestAuthSignUp;
 import org.telegram.api.functions.contacts.TLRequestContactsGetContacts;
@@ -85,6 +86,9 @@ public class Telegram extends TelegramLoggerControl
 	this.events = events;
 	this.sett = sett;
     this.memstate = new MemoryApiState("Telegram."+sett.getPhone("")+".raw");
+    
+    System.out.println("DEBUG: "+System.getProperty("file.encoding"));
+    System.out.println("DEBUG: "+Charset.defaultCharset());
     }
 
     private boolean init()
@@ -164,7 +168,11 @@ public class Telegram extends TelegramLoggerControl
 			task = Task.SIGN_UP;
 		} else
 		{
-			task = Task.NONE;
+			String smsCode=sett.getAuthSmsCode("");
+			if(smsCode==null||smsCode.isEmpty())
+				task = Task.SIGN_IN;
+			else
+				task = Task.NONE;
 		}
         } 
 catch (RpcException e) 
@@ -219,6 +227,10 @@ catch (TimeoutException e)
 	Log.debug("chat-telegram", "telegram opened: , task=" + task);
 }
 
+    public void setReconnect()
+    {
+    	task=Task.SIGN_IN;
+    }
     public void connect()
     {
     	
@@ -258,27 +270,34 @@ catch (TimeoutException e)
     {
 	//Log.debug("chat-telegram", "performing signUp()");
 	// request twofactor auth sms from server
-	final TLRequestAuthSendCode authSendCode =  new TLRequestAuthSendCode();
-        authSendCode.setPhoneNumber(sett.getPhone(""));
+   	Boolean smsVoice=sett.getSmsVoice(true); 
+	TLSentCode sentCode;
+//   	if(smsVoice==null||smsVoice)
+//   	{
+////   		final TLRequestAuthSendCall
+//   
+//   	} else
+   	{
+		final TLRequestAuthSendCall authSendCode =  new TLRequestAuthSendCall();
+		//authSendCode.setFlags(1<<3);
+		authSendCode.setPhoneNumber(sett.getPhone(""));
         authSendCode.setApiHash(APIHASH);
         authSendCode.setApiId(APIID);
-	final TLSentCode sentCode;
-	final String phoneCodeHash;
-	try {
-	    Log.debug("chat-telegram", "trying RpcRequestAuthSendCode "+memstate.getPrimaryDc());
-	    sentCode = api.doRpcCallNonAuth(authSendCode,TIMEOUT,memstate.getPrimaryDc());
-	    phoneCodeHash = sentCode.getPhoneCodeHash();
-	} 
-	catch (Exception e) 
-	{
-	    onError(e, "TLRequestAuthSendCode");
-	    return;
-	}
+		try {
+		    Log.debug("chat-telegram", "trying RpcRequestAuthSendCode "+memstate.getPrimaryDc());
+		    sentCode = api.doRpcCallNonAuth(authSendCode,TIMEOUT,memstate.getPrimaryDc());
+		} 
+		catch (Exception e) 
+		{
+		    onError(e, "TLRequestAuthSendCode");
+		    return;
+		}
+   	}
 	// request twofactor sms code from user
 	final String answer = events.askTwoPassAuthCode();
 	if (answer == null || answer.trim().isEmpty())
 	    return;
-	Log.debug("chat-telegram", "phone code hash:" + phoneCodeHash);
+	Log.debug("chat-telegram", "phone code hash:" + sentCode.getPhoneCodeHash());
 	Log.debug("chat-telegram", "user answer:" + answer);
 	// do auth in server
 	auth = null;
@@ -286,7 +305,7 @@ catch (TimeoutException e)
 	{
 	case SIGN_IN:
 	    try {
-		signIn(answer, phoneCodeHash);
+		signIn(answer, sentCode.getPhoneCodeHash());
 	    } 
 	    catch (Exception e) 
 	    {
@@ -312,7 +331,7 @@ catch (TimeoutException e)
 		break;
 	}
 	sett.setAuthSmsCode(answer);
-	sett.setAuthPhoneHash(phoneCodeHash);
+	sett.setAuthPhoneHash(sentCode.getPhoneCodeHash());
 	task=Task.AUTHORIZED;
 	Log.debug("chat-telegram", "getAuthKey " + Hex.encodeHex(api.getState().getAuthKey(tlconfig.getThisDc())).toString());
 	Log.debug("chat-telegram", "getUserId " + api.getState().getUserId());
