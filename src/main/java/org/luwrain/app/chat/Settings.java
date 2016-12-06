@@ -3,7 +3,7 @@ package org.luwrain.app.chat;
 
 import org.luwrain.core.*;
 
-interface Settings
+public interface Settings
 {
     static final String ACCOUNTS_PATH = "/org/luwrain/app/chat/accounts";
 
@@ -12,21 +12,25 @@ interface Settings
 	String getType(String def);
     }
 
-    interface Telegram
+    public interface Telegram extends Base
     {
+	String getName(String defValue);
+	void setName(String value);
 	void setType(String val);
 	String getFirstName(String def);
 	String getLastName(String def);
 	String getPhone(String def);
 	String getAuthSmsCode(String def);
 	String getAuthPhoneHash(String def);
-	boolean getAutoConnect(boolean def);
-	void setAutoConnect(boolean val);
+	boolean getSmsVoice(boolean def);
+	//	boolean getAutoConnect(boolean def);
+	//	void setAutoConnect(boolean val);
 	void setFirstName(String val);
 	void setLastName(String val);
 	void setPhone(String val);
 	void setAuthSmsCode(String val);
 	void setAuthPhoneHash(String val);
+	void setSmsVoice(boolean val);
     }
 
     interface Jabber
@@ -46,6 +50,12 @@ interface Settings
 	void setType(String val);
     }
 
+    static Base createBase(Registry registry, String path)
+    {
+	NullCheck.notNull(registry, "registry");
+	NullCheck.notEmpty(path, "path");
+	return RegistryProxy.create(registry, path, Base.class);
+    }
     static Telegram createTelegram(Registry registry, String path)
     {
 	NullCheck.notNull(registry, "registry");

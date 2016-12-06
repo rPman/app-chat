@@ -4,9 +4,8 @@ package org.luwrain.app.chat.im;
 public interface Account
 {
     Contact[] getContacts();
-	void doAutoConnect(Runnable finish);
-	void onConnect(Runnable finish);
-	Messenger getMessenger();
-	Message sendNewMessage(String text, Contact contact);
-	void askCreateContact(Runnable finished);
+    void open();
+    void activate();
+    void sendMessage(String text, Contact contact);
+    void addContact(String phone, String firstName, String lastName, Runnable finished);
 }

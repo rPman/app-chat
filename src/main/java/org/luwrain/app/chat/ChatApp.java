@@ -4,24 +4,20 @@ package org.luwrain.app.chat;
 import java.util.*;
 
 import org.luwrain.core.*;
-import org.luwrain.core.Settings.I18n;
 import org.luwrain.core.events.*;
-import org.luwrain.popups.EditListPopup;
-import org.luwrain.popups.EditListPopupUtils;
 import org.luwrain.popups.Popups;
-import org.luwrain.app.chat.im.*;
 import org.luwrain.controls.*;
+import org.luwrain.app.chat.im.*;
 
-class ChatApp implements Application, MonoApp
+class ChatApp implements Application, MonoApp, Listener
 {
-
     private Luwrain luwrain;
     private final Base base = new Base();
     private Actions actions;
-    public enum TypeChats{Telegram,Jabber};
     private Strings strings;
 
     private TreeArea treeArea;
+    private ChatArea chatArea;
 
     @Override public boolean onLaunch(Luwrain luwrain)
     {
@@ -31,10 +27,11 @@ class ChatApp implements Application, MonoApp
 	    return false;
 	strings = (Strings)o;
 	this.luwrain = luwrain;
-	if (!base.init(luwrain))
+	if (!base.init(luwrain, this))
 	    return false;
 	actions = new Actions(luwrain);
 	createArea();
+	open();
 	return true;
     }
 
@@ -44,9 +41,8 @@ class ChatApp implements Application, MonoApp
 	treeParams.environment = new DefaultControlEnvironment(luwrain);
 	treeParams.model = base.getTreeModel();
 	treeParams.name = strings.sectionsAreaName();
-	//treeParams.clickHandler = (area, obj)->openSection(obj);
 
-treeArea = new TreeArea(treeParams){
+	treeArea = new TreeArea(treeParams){
 
 		@Override public boolean onKeyboardEvent(KeyboardEvent event)
 		{
@@ -55,11 +51,11 @@ treeArea = new TreeArea(treeParams){
 			switch (event.getSpecial())
 			{
 			case TAB:
-			    return base.gotoSecondArea();
+			    return gotoChatArea();
 			}
 		    return super.onKeyboardEvent(event);
 		}
-    
+
 		@Override public boolean onEnvironmentEvent(EnvironmentEvent event)
 		{
 		    NullCheck.notNull(event, "event");
@@ -81,30 +77,9 @@ treeArea = new TreeArea(treeParams){
 		{
 		    return actions.getTreeActions();
 		}
-
-//		@Override public void onClick(Object obj)
-//		{
-//			if (obj instanceof Account)
-//			{		
-//				((Account)obj).onConnect(new Runnable()
-//				{
-//					@Override public void run()
-//					{
-//					}
-//				});
-//			}
-//			else
-//				if (obj instanceof Contact)
-//				{
-//					
-//					Contact contact=((Contact)obj);
-//				}
-//		}
 	};
 
-    base.setSectionsArea(treeArea);
-
-    base.setChatArea(new ChatArea(new DefaultControlEnvironment(luwrain)) {
+chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
 
 	    @Override public boolean onKeyboardEvent(KeyboardEvent event)
 	    {
@@ -113,9 +88,7 @@ treeArea = new TreeArea(treeParams){
 		    switch(event.getSpecial())
 		{
 		case TAB:
-		    return base.gotoSectionsArea();
-//		case ENTER:
-//			return base.getChatArea().sendNewMessage();
+		    return gotoTreeArea();
 		}
 		return super.onKeyboardEvent(event);
 	    }
@@ -134,33 +107,51 @@ treeArea = new TreeArea(treeParams){
 		    return super.onEnvironmentEvent(event);
 		}
 	    }
-	});
+	};
 
-		base.getChatArea().setEnteringPrefix("proba>");
-		base.getChatArea().setListener((text)->base.getChatArea().addLine("entered>", text));
-
-		base.init();
+	treeArea.setClickHandler((area, obj)->actions.onTreeClick(area, chatArea, obj));
+chatArea.setEnteringPrefix("proba>");
     }
 
     private boolean onTreeAction(EnvironmentEvent event)
     {
 	NullCheck.notNull(event, "event");
-	if (ActionEvent.isAction(event, "add-account"))
-	    return actions.onAddAccount(treeArea);
-	if (ActionEvent.isAction(event, "select-item"))
-	    return actions.onSelectItem(treeArea,base.getChatArea());
 	if (ActionEvent.isAction(event, "add-contact"))
-	    return actions.onAddContact(treeArea,base.getChatArea());
-	if (ActionEvent.isAction(event, "find-unread"))
-	    return actions.onFindUnreadMessage(treeArea,base.getChatArea(),base);
+	    return actions.onAddContact(treeArea, chatArea);
 	return false;
     }
 
- 
+    @Override public void refreshTree()
+    {
+	treeArea.refresh();
+    }
+
+    @Override public void refreshChatArea()
+    {
+	chatArea.refresh();
+    }
+
+    private void open()
+    {
+	for(Account a: base.getAccounts())
+	    a.open();
+    }
+
+    private boolean gotoTreeArea()
+    {
+	luwrain.setActiveArea(treeArea);
+	return true;
+    }
+
+    private boolean gotoChatArea()
+    {
+	luwrain.setActiveArea(chatArea);
+	return true;
+    }
 
     @Override public AreaLayout getAreasToShow()
     {
-	return new AreaLayout(AreaLayout.LEFT_RIGHT, base.getSectionsArea(), base.getChatArea());
+	return new AreaLayout(AreaLayout.LEFT_RIGHT, treeArea, chatArea);
     }
 
     @Override public String getAppName()
@@ -178,5 +169,4 @@ private void closeApp()
     {
 	luwrain.closeApp();
     }
-
 }

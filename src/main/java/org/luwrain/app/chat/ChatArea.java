@@ -9,84 +9,62 @@ import org.luwrain.core.queries.*;
 import org.luwrain.app.chat.im.Account;
 import org.luwrain.app.chat.im.Contact;
 import org.luwrain.app.chat.im.Message;
-import org.luwrain.app.chat.im.MessageList;
 import org.luwrain.controls.*;
 
 class ChatArea extends NavigationArea implements  EmbeddedEditLines
 {
-    protected Listener listener = null;
     protected final EmbeddedSingleLineEdit edit;
-    protected String enteringPrefix = "";
+    protected final String enteringPrefix = ">";
     protected String enteringText = "";
-	private Contact contact=null;
+    //    private Account currentAccount = null;
+    private Contact contact = null;
+    private Message[] messages = new Message[0];
 
     ChatArea(ControlEnvironment environment)
     {
 	super(environment);
 	edit = new EmbeddedSingleLineEdit(environment, this, this, 0, 0);
-    }
-
-    void setListener(Listener listener)
-    {
-	this.listener = listener;
+	updateEditPos();
     }
 
     void setEnteringPrefix(String prefix)
     {
 	NullCheck.notNull(prefix, "prefix");
-	this.enteringPrefix = prefix;
-	updateEditPos();
-	environment.onAreaNewContent(this);
-    }
-
-    void addLine(String prefix, String text)
-    {
-	NullCheck.notNull(prefix, "prefix");
-	NullCheck.notNull(text, "text");if (contact==null) return;
-	if (contact.getMessages()==null) return;
-	if (contact.getMessages().lastMessages()==null) return;
-	contact.getMessages().lastMessages().add(contact.getAccount().sendNewMessage(text,contact));
-	updateEditPos();
-	environment.onAreaNewContent(this);
-	if (getHotPointY()  == contact.getMessages().lastMessages().size())
-	    setHotPointY(getHotPointY() + 1);
+	//	this.enteringPrefix = prefix;
+	//	updateEditPos();
+	//	environment.onAreaNewContent(this);
     }
 
     @Override public int getLineCount()
     {
-    	if (contact==null) return 1;
-    	if (contact.getMessages()==null) return 1;
-	return 1+contact.getMessages().lastMessages().size();
+	return messages.length + 2;
     }
 
     @Override public String getLine(int index)
     {
-    	if (contact==null) return "";
-    	if (contact.getMessages()==null) return "";
-    	if (contact.getMessages().lastMessages()==null) return "";
-	if (index < contact.getMessages().lastMessages().size())
-	    return contact.getMessages().lastMessages().get(index).getMessage();
-	if (index == contact.getMessages().lastMessages().size())
+	if (index < messages.length)
+	    return messages[index].text;
+	if (index == messages.length)
 	    return enteringPrefix + enteringText;
 	return "";
     }
 
     @Override public String getAreaName()
     {
-	return "chat";
+	return "Беседа";
     }
 
     @Override public boolean onKeyboardEvent(KeyboardEvent event)
     {
 	NullCheck.notNull(event, "event");
-	if (edit.isPosCovered(getHotPointX(), getHotPointY()))
+	if (contact != null && edit.isPosCovered(getHotPointX(), getHotPointY()))
 	    if (event.isSpecial() && !event.isModified())
 		switch(event.getSpecial())
 		{
 		case ENTER:
 		    return onEnterInEdit();
 		}
-	if (edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onKeyboardEvent(event))
+	if (contact != null && edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onKeyboardEvent(event))
 	    return true;
 	return super.onKeyboardEvent(event);
     }
@@ -94,15 +72,25 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     @Override public boolean onEnvironmentEvent(EnvironmentEvent event)
     {
 	NullCheck.notNull(event, "event");
-	if (edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onEnvironmentEvent(event))
+	if (event.getType() != EnvironmentEvent.Type.REGULAR)
+	    return super.onEnvironmentEvent(event);
+	if (contact != null && edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onEnvironmentEvent(event))
 	    return true;
+	switch(event.getCode())
+	{
+	case OK:
+	    if (contact != null && edit.isPosCovered(getHotPointX(), getHotPointY()))
+		return onEnterInEdit();
+	    return false;
+	default:
 	return super.onEnvironmentEvent(event);
+	}
     }
 
     @Override public boolean onAreaQuery(AreaQuery query)
     {
 	NullCheck.notNull(query, "query");
-	if (edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onAreaQuery(query))
+	if (contact != null && edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onAreaQuery(query))
 	    return true;
 	return super.onAreaQuery(query);
     }
@@ -111,6 +99,7 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     {
 	NullCheck.notNull(line, "line");
 	enteringText = line;
+	environment.onAreaNewContent(this);
     }
 
 @Override public String getEmbeddedEditLine(int x,int y)
@@ -120,50 +109,36 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 
     protected boolean onEnterInEdit()
     {
-	if (enteringText.isEmpty())
+	if (contact == null || enteringText.isEmpty())
 	    return false;
-	if (contact==null) return false;
-	if (contact.getMessages()==null) return false;
-	if (listener != null)
-	    listener.onNewEnteredMessage(enteringText);
+	contact.getAccount().sendMessage(enteringText, contact);
 	enteringText = "";
 	environment.onAreaNewContent(this);
-	setHotPoint(enteringPrefix.length(), contact.getMessages().lastMessages().size());
+	setHotPoint(enteringPrefix.length(), contact.getMessages().length);
 	return true;
     }
 
-	protected void updateEditPos()
+    protected void updateEditPos()
     {
-		if (contact==null) return;
-		if (contact.getMessages()==null) return;
-	edit.setNewPos(enteringPrefix.length(), contact.getMessages().lastMessages().size());
+	edit.setNewPos(enteringPrefix.length(), messages.length);
+	environment.onAreaNewContent(this);
     }
 
-	interface Listener 
+void setCurrentContact(Contact contact)
 	{
-	    void onNewEnteredMessage(String text);
-	}
-
-
-	public void selectContact(Contact selected)
-	{
-		this.contact=selected;
-		this.setHotPoint(0,selected.getMessages().lastMessages().size()-selected.getMessages().unreadCount());
-		selected.getMessages().decreaseCount(selected.getMessages().unreadCount());
+	    NullCheck.notNull(contact, "contact");
+		this.contact = contact;
+		updateEditPos();
 		environment.onAreaNewContent(this);
 	}
 
-	public void addContact(Account account)
-	{
-		ChatArea that=this;
-//		if (contact==null) return;
-		account.askCreateContact(new Runnable()
-		{
-			@Override public void run()
-			{
-				environment.onAreaNewContent(that);				
-			}
-		});
-	}
+    void refresh()
+    {
+	messages = contact.getMessages();
+	if (messages == null)
+	    messages = new Message[0];
+	updateEditPos();
+	environment.onAreaNewContent(this);
+    }
 
 }

@@ -1,38 +1,40 @@
 package org.luwrain.app.chat.im.telegram;
 
-import java.util.Date;
+import java.util.*;
 
-import org.luwrain.app.chat.im.Account;
-import org.luwrain.app.chat.im.Contact;
-import org.luwrain.app.chat.im.MessageList;
+import org.luwrain.core.*;
+import org.luwrain.app.chat.im.*;
 
 public class TelegramContactImpl implements Contact
 {
-	long accessHash;
+    long accessHash;
 	int userId;
 
 	String firstName;
 	String lastName;
 	String userName;
 	String phone;
-	MessageList messages;
-	Account account;
-	
+
+    private Message[] messages = new Message[0];
+	private final Account account;
+
 	TelegramContactImpl(Account account)
 	{
-		this.account=account;
+	    NullCheck.notNull(account, "account");
+	    this.account = account;
 	}
 	
 	@Override public Account getAccount()
 	{
 		return account;
 	}
-	void init(long accessHash,int userId,MessageList messages)
+
+	void init(long accessHash,int userId)
 	{
 		this.accessHash=accessHash;
 		this.userId=userId;
-		this.messages=messages;
 	}
+
 	void setUserInfo(String firstName,String lastName,String userName,String phone)
 	{
 		this.firstName=firstName;
@@ -45,7 +47,8 @@ public class TelegramContactImpl implements Contact
 	{
 		return phone+": "+firstName;
 	}
-	@Override public MessageList getMessages()
+
+	@Override public Message[] getMessages()
 	{
 		return messages;
 	}
@@ -59,5 +62,21 @@ public class TelegramContactImpl implements Contact
 	{
 		return accessHash;
 	}
+
+	@Override public void decreaseCount(int cnt)
+    {
+    }
+
+    @Override public int getUnreadCount()
+    {
+	return 0;
+    }
+
+    @Override public void registerNewMessage(Message message)
+    {
+	NullCheck.notNull(message, "message");
+	messages = Arrays.copyOf(messages, messages.length + 1);
+	messages[messages.length - 1] = message;
+    }
 
 }

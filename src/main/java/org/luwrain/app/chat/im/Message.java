@@ -1,10 +1,23 @@
+
 package org.luwrain.app.chat.im;
 
-import java.util.Date;
+import java.util.*;
 
-public interface Message
+import org.luwrain.core.*;
+
+public class Message
 {
-	Date getDate();
-	String getMessage();
-	Contact getAuthor();
+    public final Date date;
+    public final 	String text;
+    public final 	Contact contact;
+
+    public Message(String text, Date date, Contact contact)
+    {
+	NullCheck.notNull(text, "text");
+	NullCheck.notNull(date, "date");
+	NullCheck.notNull(contact, "contact");
+	this.text = text;
+	this.date = date;
+	this.contact = contact;
+    }
 }

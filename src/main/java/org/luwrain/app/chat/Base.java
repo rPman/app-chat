@@ -10,138 +10,64 @@ import org.luwrain.controls.*;
 
 class Base
 {
-    private final String[] TYPE_CHATS=new String[]{"Telegram","Jabber"};
-
-    
     private Luwrain luwrain;
-    private SectionsTreeModelSource treeModelSource;
+    private TreeModelSource treeModelSource;
     private CachedTreeModel treeModel;
-    
-    private TreeArea sectionsArea;
-    private ChatArea chatArea;
-    
-    Vector<Account> accounts;
-    
-    public ChatArea getChatArea()
-	{
-		return chatArea;
-	}
+    private Listener listener;
+    private Account[] accounts;
 
-	public void setSectionsArea(TreeArea sectionsArea)
-	{
-		this.sectionsArea=sectionsArea;
-	}
-
-	public void setChatArea(ChatArea chatArea)
-	{
-		this.chatArea=chatArea;
-	}
-
-	boolean init(Luwrain luwrain)
+    boolean init(Luwrain luwrain, Listener listener)
     {
 	NullCheck.notNull(luwrain, "luwrain");
+	NullCheck.notNull(listener, "listener");
 	this.luwrain = luwrain;
-	treeModelSource = new SectionsTreeModelSource(this);
+	this.listener = listener;
+	this.accounts = loadAccounts();
+	treeModelSource = new TreeModelSource(this, "Учётные записи");//FIXME:strings
 	treeModel = new CachedTreeModel(treeModelSource);
 	return true;
     }
-    
 
-     private void refreshSectionsTree()
-     {
-     }
-
-
-     boolean onTreeAction(EnvironmentEvent event)
-     {
-     	System.out.println(event.getType().toString()+event.getCode());
- 	return false;
-     }
-
-
-     boolean gotoSectionsArea()
-     {
- 	luwrain.setActiveArea(sectionsArea);
- 	return true;
-     }
-
-     boolean gotoSecondArea()
-     {
- 	luwrain.setActiveArea(chatArea);
- 	return true;
-     }
-
-    Account[] loadAccounts()
+    Account[] getAccounts()
     {
-    	if (accounts==null)
-    	{
-	    	accounts=new Vector<Account>();
-	    	String[] dirs=luwrain.getRegistry().getDirectories(Settings.ACCOUNTS_PATH);
-	    	if (dirs==null)
-	    		return new Account[]{};
-	    	int id=0;
-	    	for (String str : dirs)
-	    	{
-	    		String accountPath = Registry.join(Settings.ACCOUNTS_PATH, str);
-			Settings.Base type=RegistryProxy.create(luwrain.getRegistry(), accountPath, Settings.Base.class);
-	    		switch(type.getType(""))
-	    		{
-	    			case "Telegram":
-    				{
-final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), accountPath );
-    					TelegramAccount telegram=new TelegramAccount(luwrain, sett,new UIEvent()
-						{
-							
-							@Override public void onNewMessage()
-							{
-//								chatArea.setEmbeddedEditLine(7,chatArea.getLineCount()-1,"");
-								chatArea.setHotPointY(chatArea.getLineCount()-1);
-								luwrain.onAreaNewContent(chatArea);								
-							}
-
-							@Override public void onUnknownContactReciveMessage(String message)
-							{
-								luwrain.message("Неизвестный контакт: "+message);
-								luwrain.onAreaNewContent(sectionsArea);
-								
-							}
-						});
-    					accounts.add(telegram);
-    					break;
-    				}
-	    			//case "Jabber": res.put("Jabber"+str,id++);break;
-	    			default:
-	    				break;
-	    		}
-	    	}
-    	}
-	return accounts.toArray(new TelegramAccount[accounts.size()]);
+	return accounts;
     }
 
-    public TreeArea getSectionsArea()
+    private Account[] loadAccounts()
+    {
+	Log.debug("chat", "loading accounts");
+	final LinkedList<Account> res = new LinkedList<Account>();
+	final Registry registry = luwrain.getRegistry();
+	registry.addDirectory(Settings.ACCOUNTS_PATH);
+	for (String str : registry.getDirectories(Settings.ACCOUNTS_PATH))
 	{
-		return sectionsArea;
+	    String accountPath = Registry.join(Settings.ACCOUNTS_PATH, str);
+	    final Settings.Base type=RegistryProxy.create(luwrain.getRegistry(), accountPath, Settings.Base.class);
+	    switch(type.getType("").trim().toLowerCase())
+	    {
+	    case "telegram":
+		{
+		    final Settings.Telegram sett = Settings.createTelegram(luwrain.getRegistry(), accountPath );
+		    res.add(new TelegramAccount(luwrain, sett, listener));
+		}
+		break;
+	    default:
+		break;
+	    }
 	}
+	Log.debug("chat", "loaded " + res.size() + " accounts");
+	return res.toArray(new TelegramAccount[res.size()]);
+    }
 
-	TreeArea.Model getTreeModel()
+    TreeArea.Model getTreeModel()
     {
 	return treeModel;
     }
 
-	public void init()
-	{
-		Object[] accounts=treeModelSource.getChildObjs(treeModelSource.getRoot());
-		for(Object o:accounts)
-		{
-			Account a=(Account)o;
-			a.doAutoConnect(new Runnable()
-			{
-				@Override public void run()
-				{
-					sectionsArea.refresh();
-				}
-			});
-		}
-		
-	}
+    static String getPhoneDesignation(String str)
+    {
+	if (str.length() < 5)
+	    return str;
+	return str.substring(str.length() - 4);
+    }
 }
