@@ -59,10 +59,17 @@ class TelegramAccount implements Account
 		{
 		    return Popups.simple(luwrain, "Подключение к учетной записи", "Введите PIN:", "");
 		}
+		@Override public void onHistoryMessage(Contact from,String text,int date,int userId,boolean unread)
+		{
+			NullCheck.notNull(text, "text");
+		    luwrain.runInMainThread(()->onHistoryMessageImpl(from,text, date, userId,unread));
+			
+		}
 	    },this);
     }
 
-    @Override public void open()
+   
+	@Override public void open()
     {	
 	new Thread(()->{
 		telegram.open();
@@ -118,6 +125,23 @@ class TelegramAccount implements Account
 	}
 	    luwrain.message("Unknown contact " + text);
     }
+    
+    protected void onHistoryMessageImpl(Contact from,String text,int date,int userId,boolean unread)
+   	{
+    	// FIXME: add unread support for messages
+    	NullCheck.notNull(text, "text");
+    	TelegramContactImpl contact=null;
+    	for(TelegramContactImpl c: contacts)
+    	{
+    	    if (c.getUserId() == userId)
+    	    {
+    	    	contact=c;
+    	    	break;
+    	    }
+    	}
+    	final Message msg=new Message(text, new Date(date*1000), contact);
+    	from.registerHistoryMessage(msg,unread);
+   	}
 
     @Override public void sendMessage(String text,Contact contact)
     {
@@ -126,6 +150,8 @@ class TelegramAccount implements Account
 	Log.debug("chat-telegram", "sending \"" + text + "\' to " + contact);
 	TelegramContactImpl tcontact=(TelegramContactImpl)contact;
 	telegram.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
+	Message message=new Message(text,new Date(),contact);
+	tcontact.registerHistoryMessage(message,true);
     }
 
     @Override public void addContact(String phone, String firstName,

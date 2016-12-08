@@ -39,9 +39,16 @@ import org.telegram.api.functions.auth.TLRequestAuthSignUp;
 import org.telegram.api.functions.contacts.TLRequestContactsGetContacts;
 import org.telegram.api.functions.contacts.TLRequestContactsImportContacts;
 import org.telegram.api.functions.help.TLRequestHelpGetConfig;
+import org.telegram.api.functions.messages.TLRequestMessagesGetHistory;
 import org.telegram.api.functions.messages.TLRequestMessagesSendMessage;
 import org.telegram.api.input.TLInputPhoneContact;
+import org.telegram.api.input.peer.TLAbsInputPeer;
 import org.telegram.api.input.peer.TLInputPeerUser;
+import org.telegram.api.message.TLAbsMessage;
+import org.telegram.api.message.TLMessage;
+import org.telegram.api.messages.TLAbsMessages;
+import org.telegram.api.messages.TLMessages;
+import org.telegram.api.messages.TLMessagesSlice;
 import org.telegram.api.updates.TLAbsUpdates;
 import org.telegram.api.updates.TLUpdateShortMessage;
 import org.telegram.api.user.TLAbsUser;
@@ -49,6 +56,7 @@ import org.telegram.api.user.TLUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLBytes;
 import org.telegram.tl.TLVector;
+
 import org.luwrain.app.chat.Settings;
 
 public class Telegram extends TelegramLoggerControl
@@ -452,11 +460,37 @@ private Events getEvents()
 	    Log.debug("chat-telegram", "contacts result " + rescnts.getContacts().size());
 	    for(TLAbsUser o:rescnts.getUsers())
 	    {
-		final TLUser u=(TLUser)o;
-		final TelegramContactImpl contact = new TelegramContactImpl(account){};
-		contact.init(u.getAccessHash(),u.getId());
-		contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
-		getEvents().onNewContact(contact);	
+			final TLUser u=(TLUser)o;
+			final TelegramContactImpl contact = new TelegramContactImpl(account){};
+			contact.init(u.getAccessHash(),u.getId());
+			contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
+			getEvents().onNewContact(contact);			
+			TLRequestMessagesGetHistory mh=new TLRequestMessagesGetHistory();
+			final TLInputPeerUser	peeruser=new TLInputPeerUser();
+			peeruser.setUserId(o.getId());
+			mh.setPeer((TLAbsInputPeer)peeruser);
+			TLAbsMessages am=api.doRpcCallNonAuth(mh);
+			TLVector<TLAbsMessage> messages=null;
+			if (am instanceof TLMessagesSlice)
+			{
+				messages=((TLMessagesSlice)am).getMessages();
+				
+			}else
+			if (am instanceof TLMessages)
+			{
+				messages=((TLMessages)am).getMessages();
+			}
+			else
+			{
+				onError(new Exception("undefined type "+am.getClass().getName()));
+				return;
+			}
+			for (TLAbsMessage m:messages)
+			{
+				TLMessage message=(TLMessage)m;
+				events.onHistoryMessage(contact,message.getMessage(),message.getDate(),message.getFromId(),message.isUnreadContent());
+			}
+			System.out.println(u.getFirstName());
 	    }
 	    Log.debug("chat-telegram", "list of contacts received");
 	    return;

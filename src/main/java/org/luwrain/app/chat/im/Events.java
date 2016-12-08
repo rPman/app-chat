@@ -32,5 +32,7 @@ public interface Events
     void onNewContact(Contact contact);
 
 
-void onIncomingMessage(String text, int date, int userId);
+    void onIncomingMessage(String text, int date, int userId);
+    
+    void onHistoryMessage(Contact from, String text, int date, int userId,boolean unread);
 }

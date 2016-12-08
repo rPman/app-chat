@@ -79,4 +79,11 @@ public class TelegramContactImpl implements Contact
 	messages[messages.length - 1] = message;
     }
 
+	@Override public void registerHistoryMessage(Message message,boolean unread)
+	{
+		NullCheck.notNull(message, "message");
+		messages = Arrays.copyOf(messages, messages.length + 1);
+		messages[messages.length - 1] = message;
+	}
+
 }

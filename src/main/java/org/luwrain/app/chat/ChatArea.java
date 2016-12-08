@@ -53,7 +53,16 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     {
 	return "Беседа";
     }
-
+	@Override protected boolean onArrowDown(KeyboardEvent event)
+	{
+		onChangedMessage();	
+		return super.onArrowDown(event);
+	}
+	@Override protected boolean onArrowUp(KeyboardEvent event)
+	{
+		onChangedMessage();
+		return super.onArrowUp(event);
+	}
     @Override public boolean onKeyboardEvent(KeyboardEvent event)
     {
 	NullCheck.notNull(event, "event");
@@ -63,13 +72,29 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 		{
 		case ENTER:
 		    return onEnterInEdit();
+
 		}
 	if (contact != null && edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onKeyboardEvent(event))
 	    return true;
 	return super.onKeyboardEvent(event);
     }
 
-    @Override public boolean onEnvironmentEvent(EnvironmentEvent event)
+    private boolean onChangedMessage()
+	{
+    	if (getHotPointY()>=messages.length)
+    		return true;
+    	if (messages[getHotPointY()].contact==null)
+        	environment.playSound(Sounds.MAIN_MENU_ITEM);
+    	else
+    		environment.playSound(Sounds.DONE);
+
+    		
+		return true;
+	}
+
+	
+
+	@Override public boolean onEnvironmentEvent(EnvironmentEvent event)
     {
 	NullCheck.notNull(event, "event");
 	if (event.getType() != EnvironmentEvent.Type.REGULAR)
@@ -113,8 +138,8 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 	    return false;
 	contact.getAccount().sendMessage(enteringText, contact);
 	enteringText = "";
-	environment.onAreaNewContent(this);
-	setHotPoint(enteringPrefix.length(), contact.getMessages().length);
+	refresh();
+	setHotPoint(enteringPrefix.length(), messages.length);
 	return true;
     }
 
@@ -124,16 +149,17 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 	environment.onAreaNewContent(this);
     }
 
-void setCurrentContact(Contact contact)
+    void setCurrentContact(Contact contact)
 	{
 	    NullCheck.notNull(contact, "contact");
 		this.contact = contact;
-		updateEditPos();
-		environment.onAreaNewContent(this);
+		refresh();
+		setHotPoint(enteringPrefix.length(), messages.length);
 	}
 
     void refresh()
     {
+    if (contact==null) return;
 	messages = contact.getMessages();
 	if (messages == null)
 	    messages = new Message[0];

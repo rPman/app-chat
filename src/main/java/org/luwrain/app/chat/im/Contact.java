@@ -8,4 +8,5 @@ public interface Contact
     void registerNewMessage(Message message);
     int getUnreadCount();
     void decreaseCount(int cnt);
+	void registerHistoryMessage(Message msg,boolean unread);
 }
