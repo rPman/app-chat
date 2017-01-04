@@ -253,7 +253,6 @@ state = State.REQUIRE_RESIGN_IN;
 		onError(e);
 		return false;
 	    }
-
     }
 
     private void signWithSms()
@@ -326,82 +325,10 @@ state = State.AUTHORIZED;
 	Log.debug("chat-telegram", "getUserId " + api.getState().getUserId());
     }
 
-private TelegramApi getApi() 
-{
-		return api;
-	}
-
-private Events getEvents() 
-{
-		return events;
-	}
-
-    private MemoryApiState getMemState() 
-{
-		return memstate;
-	}
-
-    private boolean migrate()
-    {
-	    try {
-	    	ExportAuthorization();
-	    	ImportAuthorization();
-	    	return true;
-	    } 
-catch (Exception e) 
-	    {
-	    	onError(e);
-	    	return false;
-	    }
-    }
-
-	private void ImportAuthorization() throws Exception
-	{
-		//		final TelegramImpl that = this;
-		TLRequestAuthImportAuthorization impauth=new  TLRequestAuthImportAuthorization(); 
-		impauth.setId(197321144);
-		try {
-			impauth.setBytes(new TLBytes(Hex.decodeHex("3cc1b1a3763c2cad6815a5de0ffc5208e8cb6b04917d3aa88901985537edfd5d06841111785cea72a65db78f753cfe4803d5a50880cf29dd83a4a40b69a3478fea7740fe1782a945a56a49e80a8be2fcb86ed6cecc32b6ca83d46001e8e6f8ea16806c87d5c793b3e3088c598b158abdca6123fe6a915e579dc834a608ddb25456542c1e8f3290d96c12adbea2adfe7812e68dd7c9a741a1111b7e8445abc5de822abdbd9665e1c869e3ec055dce0460917785d7f8464716a50ed9a25510f51980b5cda420847ee37d7df442901330e8a03f90cd10f49e5694a3da11ccb245ac669e8c9725baae6398d8a529043624c913c2b00bf60684337165e37c5cf8c994".toCharArray()))); 
-		} catch (Exception e) 
-		{ // TODO Auto-generated catch block e.printStackTrace(); 
-state = State.ERROR;
-			events.onError(e.getMessage());
-			throw e;
-		} 
-		try {
-			System.out.println("1"); 
-			auth=api.doRpcCallNonAuth(impauth, TIMEOUT, api.getState().getPrimaryDc());
-			System.out.println("2"); 
-			memstate.doAuth(auth); 
-			System.out.println("3");
-//			that.events.onAuthFinish(); 
-			return; 
-		} 
-		catch (Exception e) {
-			throw e;
-		} 
-	}
-
-	private void ExportAuthorization() throws Exception
-	{
-	    //		final TelegramImpl that = this;
-		final TLRequestAuthExportAuthorization expauth = new TLRequestAuthExportAuthorization();
-		expauth.setDcId(tlconfig.getThisDc());
-		try {
-			TLExportedAuthorization eauth = api.doRpcCallNonAuth(expauth);
-			Log.debug("chat-telegram", "getId:" + eauth.getId());
-			Log.debug("chat-telegram", "getBytes "+new String(Hex.encodeHex(eauth.getBytes().getData())));
-		} catch (Exception e1) {
-			System.out.println("error TLRequestAuthExportAuthorization");
-			e1.printStackTrace();
-			throw e1;
-		}
-	}
-
     private void signIn(String code, String hash) throws RpcException, TimeoutException
     {
-	NullCheck.notNull(code, "code");
-	NullCheck.notNull(hash, "hash");
+	NullCheck.notEmpty(code, "code");
+	NullCheck.notEmpty(hash, "hash");
 	Log.debug("chat-telegram", "signIn(" + code + ", " + hash + ")");
 	final TLRequestAuthSignIn sign = new TLRequestAuthSignIn();
 	sign.setPhoneCode(code);
@@ -412,14 +339,17 @@ state = State.AUTHORIZED;
 	Log.debug("chat-telegram", "isTemporalSession " + auth.isTemporalSession());
     }
 
+
+
+
 public void getContacts() 
     {
 	final TLRequestContactsGetContacts cntcs = new TLRequestContactsGetContacts();
 	cntcs.setHash("");
 	TLContacts rescnts;
 	try {
-	    getEvents().onBeginAddingContact();
-	    Log.debug("chat-telegram ", "getSearchContact "+getApi().getState().getUserId());
+events.onBeginAddingContact();
+	    Log.debug("chat-telegram ", "getSearchContact " + api.getState().getUserId());
 	    rescnts = (TLContacts) api.doRpcCallNonAuth(cntcs,TIMEOUT,api.getState().getPrimaryDc());
 	    Log.debug("chat-telegram", "contacts users " + rescnts.getUsers().size());
 	    Log.debug("chat-telegram", "contacts result " + rescnts.getContacts().size());
@@ -429,7 +359,7 @@ public void getContacts()
 			final TelegramContactImpl contact = new TelegramContactImpl(account){};
 			contact.init(u.getAccessHash(),u.getId());
 			contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
-			getEvents().onNewContact(contact);			
+events.onNewContact(contact);			
 			TLRequestMessagesGetHistory mh=new TLRequestMessagesGetHistory();
 			final TLInputPeerUser	peeruser=new TLInputPeerUser();
 			peeruser.setUserId(o.getId());
@@ -563,6 +493,64 @@ public void getContacts()
 				finished.run();
 			}});
 	}
+
+    private boolean migrate()
+    {
+	    try {
+	    	ExportAuthorization();
+	    	ImportAuthorization();
+	    	return true;
+	    } 
+catch (Exception e) 
+	    {
+	    	onError(e);
+	    	return false;
+	    }
+    }
+
+	private void ImportAuthorization() throws Exception
+	{
+		//		final TelegramImpl that = this;
+		TLRequestAuthImportAuthorization impauth=new  TLRequestAuthImportAuthorization(); 
+		impauth.setId(197321144);
+		try {
+			impauth.setBytes(new TLBytes(Hex.decodeHex("3cc1b1a3763c2cad6815a5de0ffc5208e8cb6b04917d3aa88901985537edfd5d06841111785cea72a65db78f753cfe4803d5a50880cf29dd83a4a40b69a3478fea7740fe1782a945a56a49e80a8be2fcb86ed6cecc32b6ca83d46001e8e6f8ea16806c87d5c793b3e3088c598b158abdca6123fe6a915e579dc834a608ddb25456542c1e8f3290d96c12adbea2adfe7812e68dd7c9a741a1111b7e8445abc5de822abdbd9665e1c869e3ec055dce0460917785d7f8464716a50ed9a25510f51980b5cda420847ee37d7df442901330e8a03f90cd10f49e5694a3da11ccb245ac669e8c9725baae6398d8a529043624c913c2b00bf60684337165e37c5cf8c994".toCharArray()))); 
+		} catch (Exception e) 
+		{ // TODO Auto-generated catch block e.printStackTrace(); 
+state = State.ERROR;
+			events.onError(e.getMessage());
+			throw e;
+		} 
+		try {
+			System.out.println("1"); 
+			auth=api.doRpcCallNonAuth(impauth, TIMEOUT, api.getState().getPrimaryDc());
+			System.out.println("2"); 
+			memstate.doAuth(auth); 
+			System.out.println("3");
+//			that.events.onAuthFinish(); 
+			return; 
+		} 
+		catch (Exception e) {
+			throw e;
+		} 
+	}
+
+	private void ExportAuthorization() throws Exception
+	{
+	    //		final TelegramImpl that = this;
+		final TLRequestAuthExportAuthorization expauth = new TLRequestAuthExportAuthorization();
+		expauth.setDcId(tlconfig.getThisDc());
+		try {
+			TLExportedAuthorization eauth = api.doRpcCallNonAuth(expauth);
+			Log.debug("chat-telegram", "getId:" + eauth.getId());
+			Log.debug("chat-telegram", "getBytes "+new String(Hex.encodeHex(eauth.getBytes().getData())));
+		} catch (Exception e1) {
+			System.out.println("error TLRequestAuthExportAuthorization");
+			e1.printStackTrace();
+			throw e1;
+		}
+	}
+
 
     private void onError(Exception e, String comment)
     {
