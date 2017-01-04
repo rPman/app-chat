@@ -81,22 +81,28 @@ class TelegramAccount implements Account
     {
 	switch(telegram.getState())
 	{
-		case UNREGISTERED:
-		case UNAUTHORIZED_NEEDSMS:
+		case REQUIRE_SIGN_UP:
+		case REQUIRE_SIGN_IN:
+		case REQUIRE_RESIGN_IN:
 		    if (!Popups.confirmDefaultYes(luwrain, "Подключение новой учётной записи", "Учётная запись не подключена; для подключения вам будет выслан PIN-код, и открыто окно для его ввода. Вы хотите продолжить?"))
 		    	return;
 		    break;
-		case UNAUTHORIZED:
-		//	// FIXME: make possible to break authorization
-			break;
 		case AUTHORIZED:
 			return;
+	}
+	/*
 		case ERROR:
 		    if (!Popups.confirmDefaultYes(luwrain, "Подключение новой учётной записи", "Предыдущая попытка подключения провалилась; запросить PIN-кода, и открыто окно для его ввода. Вы хотите продолжить?"))
 		    	return;
 		    break;
 	}
+	*/
 	telegram.connect();
+	if (telegram.getState() == Telegram.State.REQUIRE_RESIGN_IN)
+	{
+	    luwrain.message("ККод устарел. Надо пробовать ещё раз.");
+	    return;
+	}
 	telegram.getContacts();
 	luwrain.playSound(Sounds.DONE);
 	listener.refreshTree();
@@ -166,16 +172,6 @@ class TelegramAccount implements Account
 
     @Override public String toString()
     {
-	final String prefix;
-	switch(telegram.getState())
-	{
-	case UNREGISTERED:			prefix = "SMS! "; break;
-	case UNAUTHORIZED_NEEDSMS:	prefix = "SMS? "; break;
-	case UNAUTHORIZED:			prefix = "..."; break;
-	case ERROR:					prefix = "! "; break;
-	case AUTHORIZED:			prefix = ""; break;
-	default:					prefix = "";
-	}
-	return prefix + title;
+	return title;
     }
 }

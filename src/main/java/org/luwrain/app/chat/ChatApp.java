@@ -96,7 +96,7 @@ chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
 	    @Override public boolean onEnvironmentEvent(EnvironmentEvent event)
 	    {
 		NullCheck.notNull(event, "event");
-		if (event.getType() == EnvironmentEvent.Type.REGULAR)
+		if (event.getType() != EnvironmentEvent.Type.REGULAR)
 		    return super.onEnvironmentEvent(event);
 		switch(event.getCode())
 		{

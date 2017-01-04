@@ -16,7 +16,6 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     protected final EmbeddedSingleLineEdit edit;
     protected final String enteringPrefix = ">";
     protected String enteringText = "";
-    //    private Account currentAccount = null;
     private Contact contact = null;
     private Message[] messages = new Message[0];
 
@@ -53,16 +52,7 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
     {
 	return "Беседа";
     }
-	@Override protected boolean onArrowDown(KeyboardEvent event)
-	{
-		onChangedMessage();	
-		return super.onArrowDown(event);
-	}
-	@Override protected boolean onArrowUp(KeyboardEvent event)
-	{
-		onChangedMessage();
-		return super.onArrowUp(event);
-	}
+
     @Override public boolean onKeyboardEvent(KeyboardEvent event)
     {
 	NullCheck.notNull(event, "event");
@@ -72,7 +62,6 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
 		{
 		case ENTER:
 		    return onEnterInEdit();
-
 		}
 	if (contact != null && edit.isPosCovered(getHotPointX(), getHotPointY()) && edit.onKeyboardEvent(event))
 	    return true;
@@ -87,12 +76,8 @@ class ChatArea extends NavigationArea implements  EmbeddedEditLines
         	environment.playSound(Sounds.MAIN_MENU_ITEM);
     	else
     		environment.playSound(Sounds.DONE);
-
-    		
 		return true;
 	}
-
-	
 
 	@Override public boolean onEnvironmentEvent(EnvironmentEvent event)
     {

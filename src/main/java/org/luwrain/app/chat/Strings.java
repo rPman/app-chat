@@ -1,4 +1,3 @@
-
 package org.luwrain.app.chat;
 
 public interface Strings

@@ -45,7 +45,7 @@ public class TelegramContactImpl implements Contact
 	
 	@Override public String toString()
 	{
-		return phone+": "+firstName;
+		return firstName + " " + lastName;
 	}
 
 	@Override public Message[] getMessages()
