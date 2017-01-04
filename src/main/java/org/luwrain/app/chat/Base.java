@@ -5,7 +5,7 @@ import java.util.*;
 
 import org.luwrain.core.*;
 import org.luwrain.core.events.EnvironmentEvent;
-import org.luwrain.app.chat.im.*;
+import org.luwrain.app.chat.base.*;
 import org.luwrain.controls.*;
 
 class Base

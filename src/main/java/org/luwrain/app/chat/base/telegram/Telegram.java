@@ -1,5 +1,5 @@
 
-package org.luwrain.app.chat.im.telegram;
+package org.luwrain.app.chat.base.telegram;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -7,7 +7,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 
 import org.luwrain.core.*;
-import org.luwrain.app.chat.im.*;
+import org.luwrain.app.chat.base.*;
 
 import org.apache.commons.codec.binary.Hex;
 

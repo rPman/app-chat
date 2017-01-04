@@ -1,5 +1,5 @@
 
-package org.luwrain.app.chat.im;
+package org.luwrain.app.chat.base;
 
 public interface Account
 {

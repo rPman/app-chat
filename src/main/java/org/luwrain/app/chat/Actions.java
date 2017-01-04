@@ -3,8 +3,8 @@ package org.luwrain.app.chat;
 
 import org.luwrain.core.*;
 import org.luwrain.core.events.*;
-import org.luwrain.app.chat.im.Account;
-import org.luwrain.app.chat.im.Contact;
+import org.luwrain.app.chat.base.Account;
+import org.luwrain.app.chat.base.Contact;
 import org.luwrain.controls.*;
 import org.luwrain.popups.Popups;
 

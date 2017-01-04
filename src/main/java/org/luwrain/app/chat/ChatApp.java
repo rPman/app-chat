@@ -7,7 +7,7 @@ import org.luwrain.core.*;
 import org.luwrain.core.events.*;
 import org.luwrain.popups.Popups;
 import org.luwrain.controls.*;
-import org.luwrain.app.chat.im.*;
+import org.luwrain.app.chat.base.*;
 
 class ChatApp implements Application, MonoApp, Listener
 {

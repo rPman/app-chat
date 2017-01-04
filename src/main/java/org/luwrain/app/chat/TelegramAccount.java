@@ -4,8 +4,8 @@ import java.util.*;
 
 import org.luwrain.core.*;
 import org.luwrain.popups.Popups;
-import org.luwrain.app.chat.im.*;
-import org.luwrain.app.chat.im.telegram.*;
+import org.luwrain.app.chat.base.*;
+import org.luwrain.app.chat.base.telegram.*;
 
 class TelegramAccount implements Account
 {

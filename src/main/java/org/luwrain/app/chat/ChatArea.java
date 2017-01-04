@@ -6,9 +6,9 @@ import java.util.*;
 import org.luwrain.core.*;
 import org.luwrain.core.events.*;
 import org.luwrain.core.queries.*;
-import org.luwrain.app.chat.im.Account;
-import org.luwrain.app.chat.im.Contact;
-import org.luwrain.app.chat.im.Message;
+import org.luwrain.app.chat.base.Account;
+import org.luwrain.app.chat.base.Contact;
+import org.luwrain.app.chat.base.Message;
 import org.luwrain.controls.*;
 
 class ChatArea extends NavigationArea implements  EmbeddedEditLines

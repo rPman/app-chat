@@ -1,4 +1,5 @@
-package org.luwrain.app.chat.im.telegram;
+
+package org.luwrain.app.chat.base.telegram;
 
 public class TelegramLoggerControl
 {
