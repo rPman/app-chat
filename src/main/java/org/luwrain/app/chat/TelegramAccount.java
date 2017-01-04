@@ -155,7 +155,7 @@ class TelegramAccount implements Account
 	NullCheck.notNull(contact, "contact");
 	Log.debug("chat-telegram", "sending \"" + text + "\' to " + contact);
 	TelegramContactImpl tcontact=(TelegramContactImpl)contact;
-	telegram.sendNewMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
+	telegram.sendMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
 	Message message=new Message(text,new Date(),contact);
 	tcontact.registerHistoryMessage(message,true);
     }
@@ -164,7 +164,7 @@ class TelegramAccount implements Account
 				     String lastName, Runnable onFinished)
     {
 	Log.debug("chat-telegram", "adding contact " + phone);
-	telegram.addNewContact(phone, firstName, lastName, ()->luwrain.runInMainThread(()->{
+	telegram.addContact(phone, firstName, lastName, ()->luwrain.runInMainThread(()->{
 		    telegram.getContacts();		
 		    listener.refreshTree();
 		}));

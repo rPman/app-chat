@@ -230,6 +230,11 @@ state = State.REQUIRE_SIGN_IN;
 	}
     }
 
+    public void finish()
+	{
+		api.close();
+	}
+
     private boolean signWithoutSms()
     {
 	    try {
@@ -339,9 +344,6 @@ state = State.AUTHORIZED;
 	Log.debug("chat-telegram", "isTemporalSession " + auth.isTemporalSession());
     }
 
-
-
-
 public void getContacts() 
     {
 	final TLRequestContactsGetContacts cntcs = new TLRequestContactsGetContacts();
@@ -369,7 +371,7 @@ events.onNewContact(contact);
 			if (am instanceof TLMessagesSlice)
 			{
 				messages=((TLMessagesSlice)am).getMessages();
-				
+			
 			}else
 			if (am instanceof TLMessages)
 			{
@@ -397,12 +399,7 @@ events.onNewContact(contact);
 	} 
     }
 
-    public void finish()
-	{
-		api.close();
-	}
-
-	public boolean  sendNewMessage(long accessHash, int userId, String text)
+	public boolean  sendMessage(long accessHash, int userId, String text)
 	{
 	    NullCheck.notNull(text, "text");
 	    Log.debug("chat-telegram", "sending \"" + text + "\" to " + userId);
@@ -426,73 +423,30 @@ events.onNewContact(contact);
 		} 
 	}
 
-	public void addNewContact(String phone,String firstname,String lastname,Runnable finished)
-	{
-//		TLRequestUsersGetUsers gu=new TLRequestUsersGetUsers();
-//		TLVector<TLAbsInputUser> ids=new TLVector<TLAbsInputUser>();
-//		TLInputUser iu=new TLInputUser();
-//		iu.setUserId(userId);
-//		ids.add(iu);
-//		gu.setId(ids);
-//		TLInputPhoneContact pc=new TLInputPhoneContact();
-//		pc.setClientId(userId);
-////		try
-////		{
-//			 TLVector<TLAbsUser> au=api.doRpcCallNonAuth(gu,TIMEOUT,new RpcCallback<TL>()
-//				{
-//
-//					@Override public void onError(int arg0,String arg1)
-//					{
-//						// TODO Auto-generated method stub
-//						
-//					}
-//
-//					@Override public void onResult(TLUser arg0)
-//					{
-//						// TODO Auto-generated method stub
-//						
-//					}});
-//			 for(TLAbsUser o:au)
-//				{
-//					TLUser u=(TLUser)o;
-//					if (u.getId()==userId)
-//					{
-//						pc.setFirstName(u.getFirstName());
-//						pc.setLastName(u.getLastName());
-//						pc.setPhone(u.getPhone());
-//					}
-//				}
-////		} catch(TimeoutException | IOException e)
-////		{
-////			// TODO Auto-generated catch block
-////			e.printStackTrace();
-////			events.onError(e.getMessage());
-////			return;
-////		}
-
-		final TLRequestContactsImportContacts ic = new TLRequestContactsImportContacts();
-		final TLInputPhoneContact pc=new TLInputPhoneContact();
-		//pc.setClientId(userId);
-		pc.setFirstName(firstname);
-		pc.setLastName(lastname);
-		pc.setPhone(phone);
-		TLVector<TLInputPhoneContact> vpc=new TLVector<TLInputPhoneContact>();
-		vpc.add(pc);
-		ic.setContacts(vpc);
-		ic.setReplace(false);
-		Log.debug("chat-telegram", "trying TLRequestContactsImportContacts");
-		api.doRpcCallNonAuth(ic,TIMEOUT,new RpcCallback<TLImportedContacts>()
-		{
-			@Override public void onError(int arg0,String arg1)
-			{
-			    Log.error("chat-telegram", "Add contact error: "+arg1);				
-			}
-			@Override public void onResult(TLImportedContacts arg0)
-			{
-			    Log.debug("chat-telegram", "Add contact success: "+arg0.getUsers().size());				
-				finished.run();
-			}});
-	}
+    public void addContact(String phone,String firstname,String lastname,Runnable finished)
+    {
+	final TLRequestContactsImportContacts ic = new TLRequestContactsImportContacts();
+	final TLInputPhoneContact pc=new TLInputPhoneContact();
+	pc.setFirstName(firstname);
+	pc.setLastName(lastname);
+	pc.setPhone(phone);
+	TLVector<TLInputPhoneContact> vpc=new TLVector<TLInputPhoneContact>();
+	vpc.add(pc);
+	ic.setContacts(vpc);
+	ic.setReplace(false);
+	Log.debug("chat-telegram", "trying TLRequestContactsImportContacts");
+	api.doRpcCallNonAuth(ic,TIMEOUT,new RpcCallback<TLImportedContacts>()
+			     {
+				 @Override public void onError(int arg0,String arg1)
+				 {
+				     Log.error("chat-telegram", "Add contact error: "+arg1);				
+				 }
+				 @Override public void onResult(TLImportedContacts arg0)
+				 {
+				     Log.debug("chat-telegram", "Add contact success: "+arg0.getUsers().size());				
+				     finished.run();
+				 }});
+    }
 
     private boolean migrate()
     {
@@ -510,7 +464,6 @@ catch (Exception e)
 
 	private void ImportAuthorization() throws Exception
 	{
-		//		final TelegramImpl that = this;
 		TLRequestAuthImportAuthorization impauth=new  TLRequestAuthImportAuthorization(); 
 		impauth.setId(197321144);
 		try {
@@ -551,7 +504,6 @@ state = State.ERROR;
 		}
 	}
 
-
     private void onError(Exception e, String comment)
     {
 state = State.ERROR;
@@ -559,7 +511,6 @@ state = State.ERROR;
 	e.printStackTrace();
 	events.onError(e.getClass() + ":" + e.getMessage());
     }
-
 
     private void onError(Exception e)
     {
