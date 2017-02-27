@@ -1,3 +1,20 @@
+/*
+   Copyright 2016 Ekaterina Koryakina <ekaterina_kor@mail.ru>
+   Copyright 2015-2016 Roman Volovodov <gr.rPman@gmail.com>
+   Copyright 2012-2017 Michael Pozhidaev <michael.pozhidaev@gmail.com>
+
+   This file is part of LUWRAIN.
+
+   LUWRAIN is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   LUWRAIN is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+*/
 
 package org.luwrain.app.chat;
 
@@ -30,26 +47,26 @@ class Actions
 	area.refresh();
     }
 
-    boolean onTreeClick(TreeArea treeArea,ChatArea chatArea, Object obj)
+    boolean onContactsClick(ListArea contactsArea,ChatArea chatArea, Object obj)
     {
 	if (obj instanceof Contact)
 	{
-	    final Contact contact = (Contact)treeArea.selected();
+	    final Contact contact = (Contact)obj;
 	    chatArea.setCurrentContact(contact);
 	    luwrain.setActiveArea(chatArea);
 	    return true;
 	}
 	if (obj instanceof Account)
 	{		
-	    ((Account)treeArea.selected()).activate();
+	    ((Account)obj).activate();
 	    return true;
 	}
 	return false;
     }
 
-    boolean onAddContact(TreeArea treeArea,ChatArea chatArea)
+    boolean onAddContact(ListArea contactsArea,ChatArea chatArea)
     {
-	final Object obj=treeArea.selected();
+	final Object obj = contactsArea.selected();
 	if (obj == null)
 	    return false;
 	final Account account;
@@ -68,7 +85,7 @@ class Actions
 		    final String lastName = Popups.simple(luwrain, "Добавление контакта", "Введите второе имя:","");
 		    if (lastName == null || lastName.trim().isEmpty())
 			return true;
-		    account.addContact(phone, firstName, lastName, ()->treeArea.refresh());
+		    account.addContact(phone, firstName, lastName, ()->contactsArea.refresh());
 	return true;
     }
 }

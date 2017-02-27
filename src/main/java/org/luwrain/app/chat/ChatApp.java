@@ -1,3 +1,20 @@
+/*
+   Copyright 2016 Ekaterina Koryakina <ekaterina_kor@mail.ru>
+   Copyright 2015-2016 Roman Volovodov <gr.rPman@gmail.com>
+   Copyright 2012-2017 Michael Pozhidaev <michael.pozhidaev@gmail.com>
+
+   This file is part of LUWRAIN.
+
+   LUWRAIN is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   LUWRAIN is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+*/
 
 package org.luwrain.app.chat;
 
@@ -16,7 +33,7 @@ class ChatApp implements Application, MonoApp, Listener
     private Actions actions;
     private Strings strings;
 
-    private TreeArea treeArea;
+    private ListArea contactsArea;
     private ChatArea chatArea;
 
     @Override public boolean onLaunch(Luwrain luwrain)
@@ -37,12 +54,13 @@ class ChatApp implements Application, MonoApp, Listener
 
     private void createArea()
     {
-	final TreeArea.Params treeParams = new TreeArea.Params();
-	treeParams.environment = new DefaultControlEnvironment(luwrain);
-	treeParams.model = base.getTreeModel();
-	treeParams.name = strings.sectionsAreaName();
+	final ListArea.Params contactsParams = new ListArea.Params();
+	contactsParams.environment = new DefaultControlEnvironment(luwrain);
+	contactsParams.model = base.getContactsModel();
+	contactsParams.appearance = new ListUtils.DefaultAppearance(contactsParams.environment);
+	contactsParams.name = strings.sectionsAreaName();
 
-	treeArea = new TreeArea(treeParams){
+	contactsArea = new ListArea(contactsParams){
 
 		@Override public boolean onKeyboardEvent(KeyboardEvent event)
 		{
@@ -109,7 +127,7 @@ chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
 	    }
 	};
 
-	treeArea.setClickHandler((area, obj)->actions.onTreeClick(area, chatArea, obj));
+contactsArea.setListClickHandler((area, index, obj)->actions.onContactsClick(area, chatArea, obj));
 chatArea.setEnteringPrefix("proba>");
     }
 
@@ -117,13 +135,13 @@ chatArea.setEnteringPrefix("proba>");
     {
 	NullCheck.notNull(event, "event");
 	if (ActionEvent.isAction(event, "add-contact"))
-	    return actions.onAddContact(treeArea, chatArea);
+	    return actions.onAddContact(contactsArea, chatArea);
 	return false;
     }
 
     @Override public void refreshTree()
     {
-	treeArea.refresh();
+	contactsArea.refresh();
     }
 
     @Override public void refreshChatArea()
@@ -139,7 +157,7 @@ chatArea.setEnteringPrefix("proba>");
 
     private boolean gotoTreeArea()
     {
-	luwrain.setActiveArea(treeArea);
+	luwrain.setActiveArea(contactsArea);
 	return true;
     }
 
@@ -151,7 +169,7 @@ chatArea.setEnteringPrefix("proba>");
 
     @Override public AreaLayout getAreasToShow()
     {
-	return new AreaLayout(AreaLayout.LEFT_RIGHT, treeArea, chatArea);
+	return new AreaLayout(AreaLayout.LEFT_RIGHT, contactsArea, chatArea);
     }
 
     @Override public String getAppName()

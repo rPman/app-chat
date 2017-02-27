@@ -1,3 +1,21 @@
+/*
+   Copyright 2016 Ekaterina Koryakina <ekaterina_kor@mail.ru>
+   Copyright 2015-2016 Roman Volovodov <gr.rPman@gmail.com>
+   Copyright 2012-2017 Michael Pozhidaev <michael.pozhidaev@gmail.com>
+
+   This file is part of LUWRAIN.
+
+   LUWRAIN is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   LUWRAIN is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+*/
+
 package org.luwrain.app.chat;
 
 import java.util.*;
@@ -15,7 +33,7 @@ class TelegramAccount implements Account
     private final Listener listener;
     private final Telegram telegram;
 
-	private final LinkedList<TelegramContactImpl> contacts = new LinkedList<TelegramContactImpl>();
+	private final LinkedList<TelegramContact> contacts = new LinkedList<TelegramContact>();
 
     TelegramAccount(Luwrain luwrain, Settings.Telegram sett, 
 		    Listener listener)
@@ -46,8 +64,8 @@ class TelegramAccount implements Account
 		@Override public void onNewContact(Contact contact)
 		{
 		    NullCheck.notNull(contact, "contact");
-		    if (contact instanceof TelegramContactImpl)
-		    	contacts.add((TelegramContactImpl)contact);
+		    if (contact instanceof TelegramContact)
+		    	contacts.add((TelegramContact)contact);
 		}
 		@Override public void onError(String message)
 		{
@@ -116,7 +134,7 @@ class TelegramAccount implements Account
     private void onIncomingMessageImpl(String text,int date,int userId)
     {
 	NullCheck.notNull(text, "text");
-	for(TelegramContactImpl c: contacts)
+	for(TelegramContact c: contacts)
 	{
 	    if (c.getUserId() == userId)
 	    {
@@ -136,8 +154,8 @@ class TelegramAccount implements Account
    	{
     	// FIXME: add unread support for messages
     	NullCheck.notNull(text, "text");
-    	TelegramContactImpl contact=null;
-    	for(TelegramContactImpl c: contacts)
+    	TelegramContact contact=null;
+    	for(TelegramContact c: contacts)
     	{
     	    if (c.getUserId() == userId)
     	    {
@@ -154,7 +172,7 @@ class TelegramAccount implements Account
 	NullCheck.notNull(text, "text");
 	NullCheck.notNull(contact, "contact");
 	Log.debug("chat-telegram", "sending \"" + text + "\' to " + contact);
-	TelegramContactImpl tcontact=(TelegramContactImpl)contact;
+	TelegramContact tcontact=(TelegramContact)contact;
 	telegram.sendMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
 	Message message=new Message(text,new Date(),contact);
 	tcontact.registerHistoryMessage(message,true);

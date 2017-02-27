@@ -1,3 +1,20 @@
+/*
+   Copyright 2016 Ekaterina Koryakina <ekaterina_kor@mail.ru>
+   Copyright 2015-2016 Roman Volovodov <gr.rPman@gmail.com>
+   Copyright 2012-2017 Michael Pozhidaev <michael.pozhidaev@gmail.com>
+
+   This file is part of LUWRAIN.
+
+   LUWRAIN is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   LUWRAIN is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+*/
 
 package org.luwrain.app.chat;
 
@@ -11,10 +28,9 @@ import org.luwrain.controls.*;
 class Base
 {
     private Luwrain luwrain;
-    private TreeModelSource treeModelSource;
-    private CachedTreeModel treeModel;
     private Listener listener;
     private Account[] accounts;
+    private ContactsModel contactsModel = null;
 
     boolean init(Luwrain luwrain, Listener listener)
     {
@@ -23,8 +39,7 @@ class Base
 	this.luwrain = luwrain;
 	this.listener = listener;
 	this.accounts = loadAccounts();
-	treeModelSource = new TreeModelSource(this, "Учётные записи");//FIXME:strings
-	treeModel = new CachedTreeModel(treeModelSource);
+	contactsModel = new ContactsModel(this);
 	return true;
     }
 
@@ -59,9 +74,9 @@ class Base
 	return res.toArray(new TelegramAccount[res.size()]);
     }
 
-    TreeArea.Model getTreeModel()
+    ListArea.Model getContactsModel()
     {
-	return treeModel;
+	return contactsModel;
     }
 
     static String getPhoneDesignation(String str)
