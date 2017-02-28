@@ -379,34 +379,27 @@ events.onBeginAddingContact();
 			contact.init(u.getAccessHash(),u.getId());
 			contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
 events.onNewContact(contact);			
-			TLRequestMessagesGetHistory mh=new TLRequestMessagesGetHistory();
+			final TLRequestMessagesGetHistory mh = new TLRequestMessagesGetHistory();
 			final TLInputPeerUser	peeruser=new TLInputPeerUser();
 			peeruser.setUserId(o.getId());
 			mh.setPeer((TLAbsInputPeer)peeruser);
-			TLAbsMessages am=api.doRpcCallNonAuth(mh);
-			TLVector<TLAbsMessage> messages=null;
+			final TLAbsMessages am = api.doRpcCallNonAuth(mh);
+			final TLVector<TLAbsMessage> messages;
 			if (am instanceof TLMessagesSlice)
-			{
-				messages=((TLMessagesSlice)am).getMessages();
-			
-			}else
+				messages = ((TLMessagesSlice)am).getMessages(); else
 			if (am instanceof TLMessages)
-			{
-				messages=((TLMessages)am).getMessages();
-			}
-			else
+				messages=((TLMessages)am).getMessages(); else
 			{
 				onError(new Exception("undefined type "+am.getClass().getName()));
 				return;
 			}
-			for (TLAbsMessage m:messages)
+
+			for (TLAbsMessage m: messages)
 			{
-				TLMessage message=(TLMessage)m;
-				events.onHistoryMessage(contact,message.getMessage(),message.getDate(),message.getFromId(),message.isUnreadContent());
+				final TLMessage message = (TLMessage)m;
+				events.onHistoryMessage(contact, message.getMessage(), message.getDate(), message.getFromId(), message.isUnreadContent());
 			}
-			System.out.println(u.getFirstName());
 	    }
-	    Log.debug("chat-telegram", "list of contacts received");
 	    return;
 	} 
 	catch (Exception e) 

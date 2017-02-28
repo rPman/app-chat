@@ -73,16 +73,19 @@ class TelegramAccount implements Account
 		    Log.error("chat-telegram", message);
 		    luwrain.runInMainThread(()->luwrain.message(message, Luwrain.MESSAGE_ERROR));
 		}
+
 		@Override public String askTwoPassAuthCode()
 		{
 		    return Popups.simple(luwrain, "Подключение к учетной записи", "Введите PIN:", "");
 		}
-		@Override public void onHistoryMessage(Contact from,String text,int date,int userId,boolean unread)
+
+		@Override public void onHistoryMessage(Contact from,String text, long date,
+int userId, boolean unread)
 		{
 			NullCheck.notNull(text, "text");
 		    luwrain.runInMainThread(()->onHistoryMessageImpl(from,text, date, userId,unread));
-			
-		}
+					}
+
 	    },this);
     }
 
@@ -149,21 +152,19 @@ class TelegramAccount implements Account
 	luwrain.message("Unknown contact " + text);
     }
 
-    protected void onHistoryMessageImpl(Contact from,String text,int date,int userId,boolean unread)
+    private void onHistoryMessageImpl(Contact from,String text, long date,int userId,boolean unread)
    	{
     	// FIXME: add unread support for messages
+	    NullCheck.notNull(from, "from");
     	NullCheck.notNull(text, "text");
     	TelegramContact contact=null;
     	for(TelegramContact c: contacts)
-    	{
     	    if (c.getUserId() == userId)
     	    {
-    	    	contact=c;
+    	    	contact = c;
     	    	break;
     	    }
-    	}
-    	final Message msg=new Message(text, new Date(date*1000), contact);
-    	from.registerMessage(msg);
+    	from.registerMessage(new Message(text, new Date(date * 1000), contact));
    	}
 
     @Override public void sendMessage(String text,Contact contact)

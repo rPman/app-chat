@@ -22,7 +22,7 @@ import java.util.*;
 
 import org.luwrain.core.*;
 
-public class Message
+public class Message implements Comparable
 {
     public final Date date;
     public final String text;
@@ -38,5 +38,13 @@ public class Message
 	this.text = text;
 	this.date = date;
 	this.contact = contact;
+    }
+
+    @Override public int compareTo(Object o)
+    {
+	if (o == null || !(o instanceof Message))
+	    return 0;
+	final Message msg = (Message)o;
+	return date.compareTo(msg.date);
     }
 }

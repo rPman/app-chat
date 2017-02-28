@@ -54,7 +54,10 @@ void updateMessages()
 	{
 	    final Message[] messages = contact.getMessages();
 	    if (messages != null)
+	    {
+		Arrays.sort(messages);
 		setItems(messages);
+	    }
 	} else
 	    setItems(new Object[0]);
     }
