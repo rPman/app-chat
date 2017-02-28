@@ -48,19 +48,14 @@ class SettingsTelegramForm extends FormArea implements SectionArea
 	addEdit("phone", "Номер телефона:", telegram.getPhone(""));
 	addEdit("first-name", "Имя владельца:", telegram.getFirstName(""));
 	addEdit("last-name", "Фамилия владельца:", telegram.getLastName(""));
-	addEdit("auth-sms-code", "Проверочный код:", telegram.getAuthSmsCode(""));
-	addEdit("auth-phone-hash", "Шифр сервера:", telegram.getAuthPhoneHash(""));
     }
 
     @Override public boolean saveSectionData()
     {
-
 telegram.setName(getEnteredText("name"));
 telegram.setPhone(getEnteredText("phone"));
 telegram.setFirstName(getEnteredText("first-name"));
 telegram.setLastName(getEnteredText("last-name"));
-telegram.setAuthSmsCode(getEnteredText("auth-sms-code"));
-telegram.setAuthPhoneHash(getEnteredText("auth-phone-hash"));
 	return true;
     }
 
