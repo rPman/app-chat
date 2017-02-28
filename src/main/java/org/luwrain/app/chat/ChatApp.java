@@ -57,7 +57,14 @@ class ChatApp implements Application, MonoApp, Listener
 	final ListArea.Params contactsParams = new ListArea.Params();
 	contactsParams.environment = new DefaultControlEnvironment(luwrain);
 	contactsParams.model = base.getContactsModel();
-	contactsParams.appearance = new ListUtils.DefaultAppearance(contactsParams.environment);
+	contactsParams.appearance = new ListUtils.DoubleLevelAppearance(contactsParams.environment){
+		@Override public boolean isSectionItem(Object item)
+		{
+		    NullCheck.notNull(item, "item");
+		    return (item instanceof Account);
+		}
+	    };
+
 	contactsParams.name = strings.sectionsAreaName();
 
 	contactsArea = new ListArea(contactsParams){
@@ -93,7 +100,7 @@ class ChatApp implements Application, MonoApp, Listener
 
 		@Override public Action[] getAreaActions()
 		{
-		    return actions.getTreeActions();
+		    return actions.getContactsActions();
 		}
 	};
 
@@ -128,7 +135,9 @@ class ChatApp implements Application, MonoApp, Listener
 	};
 
 contactsArea.setListClickHandler((area, index, obj)->actions.onContactsClick(area, chatArea, obj));
-chatArea.setEnteringPrefix("proba>");
+//chatArea.setEnteringPrefix("proba>");
+    
+
     }
 
     private boolean onTreeAction(EnvironmentEvent event)
@@ -146,7 +155,7 @@ chatArea.setEnteringPrefix("proba>");
 
     @Override public void refreshChatArea()
     {
-	chatArea.refresh();
+	chatArea.updateMessages();
     }
 
     private void open()

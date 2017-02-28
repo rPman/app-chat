@@ -35,16 +35,11 @@ class Actions
 	this.luwrain = luwrain;
     }
 
-    Action[] getTreeActions()
+    Action[] getContactsActions()
     {
 	return new Action[]{
 	    new Action("add-contact", "Добавить контакт", new KeyboardEvent(KeyboardEvent.Special.INSERT)),
 	};
-    }
-
-    public void onChekedContact(TreeArea area)
-    {
-	area.refresh();
     }
 
     boolean onContactsClick(ListArea contactsArea,ChatArea chatArea, Object obj)
@@ -58,7 +53,8 @@ class Actions
 	}
 	if (obj instanceof Account)
 	{		
-	    ((Account)obj).activate();
+	    final Account account = (Account)obj;
+	    account.activate();
 	    return true;
 	}
 	return false;
@@ -75,17 +71,16 @@ class Actions
 	    if (obj instanceof Contact)
 		account = ((Contact)obj).getAccount(); else
 		return false;
-		final String phone = Popups.simple(luwrain, "Добавление контакта", "Введите номер мобильного телефона:", "");
-		if (phone == null || phone.trim().isEmpty())
-		    return true;
-
-		final String firstName = Popups.simple(luwrain, "Добавление контакта", "Введите имя:","");
-		if (firstName == null || firstName.trim().isEmpty())
-		    return true;
-		    final String lastName = Popups.simple(luwrain, "Добавление контакта", "Введите второе имя:","");
-		    if (lastName == null || lastName.trim().isEmpty())
-			return true;
-		    account.addContact(phone, firstName, lastName, ()->contactsArea.refresh());
+	final String phone = Popups.simple(luwrain, "Добавление контакта", "Введите номер мобильного телефона:", "");
+	if (phone == null || phone.trim().isEmpty())
+	    return true;
+	final String firstName = Popups.simple(luwrain, "Добавление контакта", "Введите имя:","");
+	if (firstName == null || firstName.trim().isEmpty())
+	    return true;
+	final String lastName = Popups.simple(luwrain, "Добавление контакта", "Введите фамилию:","");
+	if (lastName == null || lastName.trim().isEmpty())
+	    return true;
+	account.addContact(phone, firstName, lastName, ()->contactsArea.refresh());
 	return true;
     }
 }

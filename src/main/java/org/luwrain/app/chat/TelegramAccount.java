@@ -139,17 +139,16 @@ class TelegramAccount implements Account
 	    if (c.getUserId() == userId)
 	    {
 		final Message msg=new Message(text, new Date(), c);
-		c.registerNewMessage(msg);
-		//		luwrain.playSound(Sounds.CHAT_MESSAGE);
+		c.registerMessage(msg);
 		luwrain.message(text, Sounds.CHAT_MESSAGE);
 		listener.refreshTree();
 		listener.refreshChatArea();
 		return;
 	    }
 	}
-	    luwrain.message("Unknown contact " + text);
+	luwrain.message("Unknown contact " + text);
     }
-    
+
     protected void onHistoryMessageImpl(Contact from,String text,int date,int userId,boolean unread)
    	{
     	// FIXME: add unread support for messages
@@ -164,7 +163,7 @@ class TelegramAccount implements Account
     	    }
     	}
     	final Message msg=new Message(text, new Date(date*1000), contact);
-    	from.registerHistoryMessage(msg,unread);
+    	from.registerMessage(msg);
    	}
 
     @Override public void sendMessage(String text,Contact contact)
@@ -174,8 +173,7 @@ class TelegramAccount implements Account
 	Log.debug("chat-telegram", "sending \"" + text + "\' to " + contact);
 	TelegramContact tcontact=(TelegramContact)contact;
 	telegram.sendMessage(tcontact.getAcessHash(),tcontact.getUserId(),text);
-	Message message=new Message(text,new Date(),contact);
-	tcontact.registerHistoryMessage(message,true);
+	tcontact.registerMessage(new Message(text, new Date(), null));
     }
 
     @Override public void addContact(String phone, String firstName,

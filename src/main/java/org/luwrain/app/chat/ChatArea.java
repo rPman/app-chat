@@ -30,22 +30,45 @@ import org.luwrain.controls.*;
 
 class ChatArea extends ConsoleArea
 {
+    private final Luwrain luwrain;
     private Contact contact = null;
 
     ChatArea(Luwrain luwrain, String areaName)
     {
 	super(prepareParams(luwrain, areaName));
+	this.luwrain = luwrain;
+	setClickHandler((text)->onText(text));
     }
 
     void setCurrentContact(Contact contact)
 	{
 	    NullCheck.notNull(contact, "contact");
 		this.contact = contact;
-		final Message[] messages = contact.getMessages();
-		if (messages != null)
-		    setItems(messages);
-		super.refresh();
+updateMessages();
+moveHotPointToEnteringBeginning();
 	}
+
+void updateMessages()
+    {
+	if (contact != null)
+	{
+	    final Message[] messages = contact.getMessages();
+	    if (messages != null)
+		setItems(messages);
+	} else
+	    setItems(new Object[0]);
+    }
+
+    private boolean onText(String text)
+    {
+	NullCheck.notNull(text, "text");
+	if (contact == null || contact.getAccount() == null)
+	    return false;
+	contact.getAccount().sendMessage(text, contact);
+	luwrain.playSound(Sounds.DONE);
+	updateMessages();
+	return true;
+    }
 
     static private Params prepareParams(Luwrain luwrain, String areaName)
     {
@@ -75,14 +98,17 @@ class ChatArea extends ConsoleArea
 		return;
 	    final Message message = (Message)item;
 	    luwrain.silence();
-	    if (message.contact != null)
-		luwrain.playSound(Sounds.PARAGRAPH);
+	    luwrain.playSound(message.contact != null?Sounds.PARAGRAPH:Sounds.LIST_ITEM);
 	    luwrain.say(message.text + " " + luwrain.i18n().getPastTimeBrief(message.date));
 	}
 
 @Override public String getTextAppearance(Object item)
 	{
-	    return "kaka";
+	    NullCheck.notNull(item, "item");
+	    if (!(item instanceof Message))
+		return item.toString();
+	    final Message message = (Message)item;
+	    return message.text;
 	}
     }
 }

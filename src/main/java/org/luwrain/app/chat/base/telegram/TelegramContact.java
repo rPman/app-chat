@@ -90,14 +90,7 @@ public class TelegramContact implements Contact
 	return 0;
     }
 
-    @Override public void registerNewMessage(Message message)
-    {
-	NullCheck.notNull(message, "message");
-	messages = Arrays.copyOf(messages, messages.length + 1);
-	messages[messages.length - 1] = message;
-    }
-
-    @Override public void registerHistoryMessage(Message message,boolean unread)
+    @Override public void registerMessage(Message message)
     {
 	NullCheck.notNull(message, "message");
 	messages = Arrays.copyOf(messages, messages.length + 1);
