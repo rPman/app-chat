@@ -118,7 +118,7 @@ class TelegramAccount implements Account
 	telegram.connect();
 	if (telegram.getState() == Telegram.State.REQUIRE_RESIGN_IN)
 	{
-	    luwrain.message("ККод устарел. Надо пробовать ещё раз.");
+	    luwrain.message("Информация для аутентификации устарела. Попытайтесь подключиться ещё раз для получения проверочного СМС.");
 	    return;
 	}
 	telegram.getContacts();
@@ -141,7 +141,7 @@ class TelegramAccount implements Account
 		final Message msg=new Message(text, new Date(), c);
 		c.registerNewMessage(msg);
 		//		luwrain.playSound(Sounds.CHAT_MESSAGE);
-		luwrain.message(text, Luwrain.MESSAGE_OK);
+		luwrain.message(text, Sounds.CHAT_MESSAGE);
 		listener.refreshTree();
 		listener.refreshChatArea();
 		return;

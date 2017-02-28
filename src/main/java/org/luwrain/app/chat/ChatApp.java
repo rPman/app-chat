@@ -97,7 +97,7 @@ class ChatApp implements Application, MonoApp, Listener
 		}
 	};
 
-chatArea = new ChatArea(new DefaultControlEnvironment(luwrain)) {
+	chatArea = new ChatArea(luwrain, "Беседа") {
 
 	    @Override public boolean onKeyboardEvent(KeyboardEvent event)
 	    {
