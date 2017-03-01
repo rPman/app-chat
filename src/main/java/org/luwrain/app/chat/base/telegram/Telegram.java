@@ -68,6 +68,7 @@ import org.telegram.tl.TLBytes;
 import org.telegram.tl.TLVector;
 
 import org.luwrain.app.chat.Settings;
+import org.luwrain.app.chat.TelegramAccount;
 
 public class Telegram extends TelegramLoggerControl
 {
@@ -88,7 +89,7 @@ public class Telegram extends TelegramLoggerControl
     private TelegramApi api;
     private TLAuthorization auth;
     TLConfig tlconfig;
-    private final Account account;
+    private final TelegramAccount account;
     private final MemoryApiState memstate;
 
     TLCheckedPhone checked=null;
@@ -96,7 +97,7 @@ public class Telegram extends TelegramLoggerControl
     private State state = State.REQUIRE_SIGN_UP;
 
     public Telegram(Settings.Telegram sett, Events events,
-		    Account account)
+    		TelegramAccount account)
     {
 	NullCheck.notNull(events, "events");
 	NullCheck.notNull(sett, "sett");
@@ -378,27 +379,7 @@ events.onBeginAddingContact();
 			final TelegramContact contact = new TelegramContact(account){};
 			contact.init(u.getAccessHash(),u.getId());
 			contact.setUserInfo(u.getFirstName(),u.getLastName(),u.getUserName(),u.getPhone());
-events.onNewContact(contact);			
-			final TLRequestMessagesGetHistory mh = new TLRequestMessagesGetHistory();
-			final TLInputPeerUser	peeruser=new TLInputPeerUser();
-			peeruser.setUserId(o.getId());
-			mh.setPeer((TLAbsInputPeer)peeruser);
-			final TLAbsMessages am = api.doRpcCallNonAuth(mh);
-			final TLVector<TLAbsMessage> messages;
-			if (am instanceof TLMessagesSlice)
-				messages = ((TLMessagesSlice)am).getMessages(); else
-			if (am instanceof TLMessages)
-				messages=((TLMessages)am).getMessages(); else
-			{
-				onError(new Exception("undefined type "+am.getClass().getName()));
-				return;
-			}
-
-			for (TLAbsMessage m: messages)
-			{
-				final TLMessage message = (TLMessage)m;
-				events.onHistoryMessage(contact, message.getMessage(), message.getDate(), message.getFromId(), message.isUnreadContent());
-			}
+			events.onNewContact(contact);
 	    }
 	    return;
 	} 
@@ -408,6 +389,43 @@ events.onNewContact(contact);
 	    return;
 	} 
     }
+
+	public Message[] requestHistoryMessages(TelegramContact contact)
+	{
+	Log.debug("","request message history for: "+contact.userName+"["+contact.phone+"]");
+	try {
+		final TLRequestMessagesGetHistory mh = new TLRequestMessagesGetHistory();
+		final TLInputPeerUser	peeruser=new TLInputPeerUser();
+		peeruser.setUserId(contact.getUserId());
+		mh.setPeer((TLAbsInputPeer)peeruser);
+		final TLAbsMessages am = api.doRpcCallNonAuth(mh,TIMEOUT,api.getState().getPrimaryDc());
+		final TLVector<TLAbsMessage> messages;
+		if (am instanceof TLMessagesSlice)
+			messages = ((TLMessagesSlice)am).getMessages(); else
+		if (am instanceof TLMessages)
+			messages=((TLMessages)am).getMessages(); else
+		{
+			onError(new Exception("undefined type "+am.getClass().getName()));
+			return new Message[0];
+		}
+
+		Message[] tmsgs=new Message[messages.size()];
+		int i=0;
+		for (TLAbsMessage m: messages)
+		{
+			final TLMessage message = (TLMessage)m;
+			// FIXME: ugly TelegramAccount must be refactored
+			tmsgs[i++]=((TelegramAccount)account).makeNewMessageFrom(message.getMessage(),message.getDate(),message.getFromId(),message.isUnreadContent());
+			//events.onHistoryMessage(contact, message.getMessage(), message.getDate(), message.getFromId(), message.isUnreadContent());
+		}
+		return tmsgs;
+	}
+	catch (Exception e) 
+	{
+	    onError(e);
+	    return new Message[0];
+	} 
+	}
 
 	public boolean  sendMessage(long accessHash, int userId, String text)
 	{
@@ -534,4 +552,11 @@ state = State.ERROR;
     {
 	return state;
     }
+
+	public void close()
+	{
+		api.close();
+		api=null;
+		Log.debug("chat-telegram", "account closed");
+	}
 }

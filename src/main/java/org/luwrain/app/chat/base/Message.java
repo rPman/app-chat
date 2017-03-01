@@ -27,6 +27,7 @@ public class Message implements Comparable
     public final Date date;
     public final String text;
     public final Contact contact;
+    public boolean isUnread=true;
 
     /**
      * @param contact null for my messages
@@ -38,6 +39,19 @@ public class Message implements Comparable
 	this.text = text;
 	this.date = date;
 	this.contact = contact;
+    }
+    
+    /**
+     * @param contact null for my messages
+     */
+    public Message(String text, Date date, Contact contact,boolean isUnread)
+    {
+	NullCheck.notNull(text, "text");
+	NullCheck.notNull(date, "date");
+	this.text = text;
+	this.date = date;
+	this.contact = contact;
+	this.isUnread=isUnread;
     }
 
     @Override public int compareTo(Object o)

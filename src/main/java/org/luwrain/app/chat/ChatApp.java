@@ -194,6 +194,8 @@ contactsArea.setListClickHandler((area, index, obj)->actions.onContactsClick(are
 
 private void closeApp()
     {
+	for(Account a: base.getAccounts())
+	    a.close();
 	luwrain.closeApp();
     }
 }

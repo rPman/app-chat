@@ -51,5 +51,5 @@ public interface Events
 
     void onIncomingMessage(String text, int date, int userId);
     
-    void onHistoryMessage(Contact from, String text, long date, int userId,boolean unread);
+//    void onHistoryMessage(Contact from, String text, long date, int userId,boolean unread);
 }

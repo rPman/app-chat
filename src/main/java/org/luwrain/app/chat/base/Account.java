@@ -25,4 +25,5 @@ public interface Account
     void activate();
     void sendMessage(String text, Contact contact);
     void addContact(String phone, String firstName, String lastName, Runnable finished);
+	void close();
 }

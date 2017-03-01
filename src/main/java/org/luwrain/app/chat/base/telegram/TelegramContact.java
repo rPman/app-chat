@@ -21,10 +21,12 @@ package org.luwrain.app.chat.base.telegram;
 import java.util.*;
 
 import org.luwrain.core.*;
+import org.luwrain.app.chat.TelegramAccount;
 import org.luwrain.app.chat.base.*;
 
 public class TelegramContact implements Contact
 {
+	final TelegramAccount account;
     long accessHash;
     int userId;
 
@@ -33,10 +35,9 @@ public class TelegramContact implements Contact
     String userName;
     String phone;
 
-    private Message[] messages = new Message[0];
-    private final Account account;
+    private Message[] messages = null;
 
-    TelegramContact(Account account)
+    TelegramContact(TelegramAccount account)
     {
 	NullCheck.notNull(account, "account");
 	this.account = account;
@@ -68,7 +69,11 @@ public class TelegramContact implements Contact
 
     @Override public Message[] getMessages()
     {
-	return messages;
+   	if(messages==null)
+   	{
+    	messages=account.requestHistoryMessages(this);
+   	}
+   	return messages;
     }
 
     public int getUserId()
@@ -93,6 +98,10 @@ public class TelegramContact implements Contact
     @Override public void registerMessage(Message message)
     {
 	NullCheck.notNull(message, "message");
+   	if(messages==null)
+   	{
+    	messages=account.requestHistoryMessages(this);
+   	}
 	messages = Arrays.copyOf(messages, messages.length + 1);
 	messages[messages.length - 1] = message;
     }

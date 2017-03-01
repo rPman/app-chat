@@ -24,8 +24,9 @@ import org.luwrain.core.*;
 import org.luwrain.popups.Popups;
 import org.luwrain.app.chat.base.*;
 import org.luwrain.app.chat.base.telegram.*;
+import org.luwrain.app.chat.base.Message;
 
-class TelegramAccount implements Account
+public class TelegramAccount implements Account
 {
     private final Luwrain luwrain;
     private final Settings.Telegram sett;
@@ -79,12 +80,11 @@ class TelegramAccount implements Account
 		    return Popups.simple(luwrain, "Подключение к учетной записи", "Введите PIN:", "");
 		}
 
-		@Override public void onHistoryMessage(Contact from,String text, long date,
-int userId, boolean unread)
-		{
-			NullCheck.notNull(text, "text");
-		    luwrain.runInMainThread(()->onHistoryMessageImpl(from,text, date, userId,unread));
-					}
+//		@Override public void onHistoryMessage(Contact from,String text, long date, int userId, boolean unread)
+//		{
+//			NullCheck.notNull(text, "text");
+//		    luwrain.runInMainThread(()->onHistoryMessageImpl(from,text, date, userId,unread));
+//		}
 
 	    },this);
     }
@@ -96,6 +96,10 @@ int userId, boolean unread)
 		telegram.open();
 		luwrain.runInMainThread(()->listener.refreshTree());
 	}).start();
+    }
+	@Override public void close()
+    {	
+		telegram.close();
     }
 
     @Override public void activate()
@@ -141,7 +145,7 @@ int userId, boolean unread)
 	{
 	    if (c.getUserId() == userId)
 	    {
-		final Message msg=new Message(text, new Date(), c);
+		final Message msg=new Message(text, new Date(), c, true); // new unread message
 		c.registerMessage(msg);
 		luwrain.message(text, Sounds.CHAT_MESSAGE);
 		listener.refreshTree();
@@ -152,10 +156,8 @@ int userId, boolean unread)
 	luwrain.message("Unknown contact " + text);
     }
 
-    private void onHistoryMessageImpl(Contact from,String text, long date,int userId,boolean unread)
-   	{
-    	// FIXME: add unread support for messages
-	    NullCheck.notNull(from, "from");
+    public Message makeNewMessageFrom(String text, long date,int userId,boolean unread)
+    {
     	NullCheck.notNull(text, "text");
     	TelegramContact contact=null;
     	for(TelegramContact c: contacts)
@@ -164,8 +166,19 @@ int userId, boolean unread)
     	    	contact = c;
     	    	break;
     	    }
-    	from.registerMessage(new Message(text, new Date(date * 1000), contact));
-   	}
+    	return new Message(text, new Date(date * 1000), contact, unread);
+    }
+//    private void onHistoryMessageImpl(Contact from,String text, long date,int userId,boolean unread)
+//   	{
+//	    NullCheck.notNull(from, "from");
+//    	NullCheck.notNull(text, "text");
+//    	from.registerMessage(makeNewMessageFrom(text,date,userId,unread));
+//   	}
+    
+    public Message[] requestHistoryMessages(TelegramContact contact)
+    {
+    	return telegram.requestHistoryMessages(contact);
+    }
 
     @Override public void sendMessage(String text,Contact contact)
     {
